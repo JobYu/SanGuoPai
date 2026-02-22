@@ -26,7 +26,7 @@
       "name": "高昇",
       "campaign": "黃巾之亂",
       "stage_index": 3,
-      "morale": 500,
+      "morale": 400,
       "ai_stand_threshold": 17,
       "ai_tendency": "穩健",
       "flavour": "張寶部將。"
@@ -36,7 +36,7 @@
       "name": "嚴政",
       "campaign": "黃巾之亂",
       "stage_index": 4,
-      "morale": 800,
+      "morale": 500,
       "ai_stand_threshold": 17,
       "ai_tendency": "穩健",
       "flavour": "黃巾將領。"

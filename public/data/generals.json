@@ -12,11 +12,11 @@
       "skill_effects": [
         {
           "type": "加法",
-          "value": 20,
+          "value": 60,
           "condition": null
         }
       ],
-      "flavour": "結算時無條件 +20 傷害。"
+      "flavour": "結算時無條件 +60 傷害。"
     },
     {
       "id": "yu_jin",
@@ -28,11 +28,11 @@
       "skill_effects": [
         {
           "type": "加法",
-          "value": 25,
+          "value": 75,
           "condition": "玩家未要牌即直接出牌（僅初始兩張）"
         }
       ],
-      "flavour": "初始兩張牌直接出牌則 +25 傷害。"
+      "flavour": "初始兩張牌直接出牌則 +75 傷害。"
     },
     {
       "id": "ma_dai",
@@ -44,11 +44,11 @@
       "skill_effects": [
         {
           "type": "加法",
-          "value": 15,
+          "value": 45,
           "condition": "玩家手牌數 ≥ 4 張"
         }
       ],
-      "flavour": "手牌 ≥ 4 張時，結算 +15 傷害。"
+      "flavour": "手牌 ≥ 4 張時，結算 +45 傷害。"
     },
     {
       "id": "ding_feng",
@@ -60,11 +60,11 @@
       "skill_effects": [
         {
           "type": "加法",
-          "value": 20,
+          "value": 60,
           "condition": "玩家點數為 17～20"
         }
       ],
-      "flavour": "點數在 17～20 之間時，+20 傷害。"
+      "flavour": "點數在 17～20 之間時，+60 傷害。"
     },
     {
       "id": "xia_hou_dun",
@@ -76,11 +76,11 @@
       "skill_effects": [
         {
           "type": "乘法",
-          "value": 1.2,
+          "value": 1.6,
           "condition": "下一回合結算時生效（僅下一場）"
         }
       ],
-      "flavour": "本場若爆牌，下一場倍率 x1.2。"
+      "flavour": "本場若爆牌，下一場倍率 x1.6。"
     },
     {
       "id": "guan_ping",
@@ -92,11 +92,11 @@
       "skill_effects": [
         {
           "type": "加法",
-          "value": 25,
+          "value": 75,
           "condition": "本回合要牌得到 A 則結算時額外加上"
         }
       ],
-      "flavour": "要牌抽到 A 時，結算 +25 傷害。"
+      "flavour": "要牌抽到 A 時，結算 +75 傷害。"
     },
     {
       "id": "sun_shang_xiang",
@@ -108,11 +108,11 @@
       "skill_effects": [
         {
           "type": "乘法",
-          "value": 1.25,
+          "value": 1.75,
           "condition": "手牌中至少 2 張同花色"
         }
       ],
-      "flavour": "手牌有 2 張以上同花色時，倍率 x1.25。"
+      "flavour": "手牌有 2 張以上同花色時，倍率 x1.75。"
     },
     {
       "id": "hua_xiong",
@@ -124,11 +124,11 @@
       "skill_effects": [
         {
           "type": "乘法",
-          "value": 1.3,
+          "value": 1.9,
           "condition": "敵將點數 ≥ 18"
         }
       ],
-      "flavour": "敵將點數 ≥ 18 時，倍率 x1.3。"
+      "flavour": "敵將點數 ≥ 18 時，倍率 x1.9。"
     },
     {
       "id": "lu_xun",
@@ -140,16 +140,16 @@
       "skill_effects": [
         {
           "type": "乘法",
-          "value": 1.5,
+          "value": 2.5,
           "condition": "玩家點數恰為 21"
         },
         {
           "type": "乘法",
-          "value": 1.1,
+          "value": 1.3,
           "condition": "否則"
         }
       ],
-      "flavour": "21 點時倍率 x1.5，其餘獲勝 x1.1。"
+      "flavour": "21 點時倍率 x2.5，其餘獲勝 x1.3。"
     },
     {
       "id": "zhang_liao",
@@ -161,16 +161,16 @@
       "skill_effects": [
         {
           "type": "加法",
-          "value": 50,
+          "value": 150,
           "condition": "本回合要牌次數為 0"
         },
         {
           "type": "加法",
-          "value": 25,
+          "value": 75,
           "condition": "本回合要牌次數為 1"
         }
       ],
-      "flavour": "0 次要牌 +50 傷害，1 次要牌 +25。"
+      "flavour": "0 次要牌 +150 傷害，1 次要牌 +75。"
     },
     {
       "id": "huang_yue_ying",
@@ -182,11 +182,11 @@
       "skill_effects": [
         {
           "type": "乘法",
-          "value": 1.4,
+          "value": 2.2,
           "condition": "該次結算"
         }
       ],
-      "flavour": "達成 21 點時，倍率 x1.4。"
+      "flavour": "達成 21 點時，倍率 x2.2。"
     },
     {
       "id": "lu_bu",
@@ -198,11 +198,11 @@
       "skill_effects": [
         {
           "type": "乘法",
-          "value": 1.45,
+          "value": 2.35,
           "condition": "玩家點數大於敵將且差 ≥ 5"
         }
       ],
-      "flavour": "贏點超過 5 點時，倍率 x1.45。"
+      "flavour": "贏點超過 5 點時，倍率 x2.35。"
     },
     {
       "id": "cao_cao",
@@ -214,16 +214,16 @@
       "skill_effects": [
         {
           "type": "乘法",
-          "value": 1.35,
+          "value": 2.05,
           "condition": "敵將明牌為 10 或 J/Q/K（視為 10）"
         },
         {
           "type": "加法",
-          "value": 40,
+          "value": 120,
           "condition": "本回合使用過錦囊"
         }
       ],
-      "flavour": "敵明牌為 10 時倍率 x1.35；使用錦囊 +40。"
+      "flavour": "敵明牌為 10 時倍率 x2.05；使用錦囊 +120。"
     },
     {
       "id": "zhu_ge_liang",
@@ -235,11 +235,11 @@
       "skill_effects": [
         {
           "type": "乘法",
-          "value": 1.4,
+          "value": 2.2,
           "condition": "本回合曾觸發觀星且未爆牌，結算時"
         }
       ],
-      "flavour": "未爆牌時，倍率 x1.4。"
+      "flavour": "未爆牌時，倍率 x2.2。"
     },
     {
       "id": "zhou_yu",
@@ -251,11 +251,11 @@
       "skill_effects": [
         {
           "type": "乘法",
-          "value": 1.35,
+          "value": 2.05,
           "condition": "本回合要牌次數 ≥ 2"
         }
       ],
-      "flavour": "要牌 ≥ 2 次時，倍率 x1.35。"
+      "flavour": "要牌 ≥ 2 次時，倍率 x2.05。"
     },
     {
       "id": "dong_zhuo",
@@ -267,16 +267,16 @@
       "skill_effects": [
         {
           "type": "乘法",
-          "value": 1.35,
+          "value": 2.05,
           "condition": "敵將明牌為 A"
         },
         {
           "type": "加法",
-          "value": 30,
+          "value": 90,
           "condition": "上一回合己方曾爆牌（風險回報）"
         }
       ],
-      "flavour": "敵明牌為 A 時倍率 x1.35；上場爆牌則 +30。"
+      "flavour": "敵明牌為 A 時倍率 x2.05；上場爆牌則 +90。"
     },
     {
       "id": "guan_yu",
@@ -288,11 +288,11 @@
       "skill_effects": [
         {
           "type": "乘法",
-          "value": 1.4,
+          "value": 2.2,
           "condition": "玩家點數為 20 或 21"
         }
       ],
-      "flavour": "點數達 20 或 21 時，倍率 x1.4。"
+      "flavour": "點數達 20 或 21 時，倍率 x2.2。"
     },
     {
       "id": "zhang_fei",
@@ -304,11 +304,11 @@
       "skill_effects": [
         {
           "type": "加法",
-          "value": 40,
+          "value": 120,
           "condition": "玩家點數大於敵將且差 ≥ 3"
         }
       ],
-      "flavour": "贏點超過 3 點時，+40 傷害。"
+      "flavour": "贏點超過 3 點時，+120 傷害。"
     },
     {
       "id": "zhao_yun",
@@ -320,11 +320,11 @@
       "skill_effects": [
         {
           "type": "乘法",
-          "value": 1.5,
+          "value": 2.5,
           "condition": "該次結算"
         }
       ],
-      "flavour": "達成 21 點時，倍率 x1.5。"
+      "flavour": "達成 21 點時，倍率 x2.5。"
     },
     {
       "id": "xu_chu",
@@ -336,12 +336,12 @@
       "skill_effects": [
         {
           "type": "加法",
-          "value": 20,
+          "value": 60,
           "condition": null
         }
       ],
       "bonus_discards": 1,
-      "flavour": "結算時 +20 傷害；+1 棄牌次數。"
+      "flavour": "結算時 +60 傷害；+1 棄牌次數。"
     },
     {
       "id": "dian_wei",
@@ -353,12 +353,12 @@
       "skill_effects": [
         {
           "type": "加法",
-          "value": 15,
+          "value": 45,
           "condition": null
         }
       ],
       "bonus_discards": 1,
-      "flavour": "結算時 +15 傷害；+1 棄牌次數。"
+      "flavour": "結算時 +45 傷害；+1 棄牌次數。"
     },
     {
       "id": "gan_ning",
@@ -370,11 +370,11 @@
       "skill_effects": [
         {
           "type": "加法",
-          "value": 30,
+          "value": 90,
           "condition": "本回合第一次要牌後結算時生效"
         }
       ],
-      "flavour": "首次要牌後，結算 +30 傷害。"
+      "flavour": "首次要牌後，結算 +90 傷害。"
     },
     {
       "id": "tai_shi_ci",
@@ -386,11 +386,11 @@
       "skill_effects": [
         {
           "type": "乘法",
-          "value": 1.35,
+          "value": 2.05,
           "condition": "手牌中有 3 張以上同花色"
         }
       ],
-      "flavour": "手牌有 3 張同花色時，倍率 x1.35。"
+      "flavour": "手牌有 3 張同花色時，倍率 x2.05。"
     },
     {
       "id": "diao_chan",
@@ -402,12 +402,12 @@
       "skill_effects": [
         {
           "type": "乘法",
-          "value": 1.25,
+          "value": 1.75,
           "condition": "敵將點數 ≥ 17"
         }
       ],
       "bonus_discards": 1,
-      "flavour": "敵將點數 ≥ 17 時倍率 x1.25；+1 棄牌次數。"
+      "flavour": "敵將點數 ≥ 17 時倍率 x1.75；+1 棄牌次數。"
     },
     {
       "id": "cheng_yuan_zhi",
@@ -419,11 +419,11 @@
       "skill_effects": [
         {
           "type": "加法",
-          "value": 15,
+          "value": 45,
           "condition": "玩家點數 ≥ 15"
         }
       ],
-      "flavour": "點數 ≥ 15 時，結算 +15 傷害。"
+      "flavour": "點數 ≥ 15 時，結算 +45 傷害。"
     },
     {
       "id": "deng_mao",
@@ -435,11 +435,43 @@
       "skill_effects": [
         {
           "type": "加法",
-          "value": 15,
+          "value": 45,
           "condition": "玩家手牌數為 2 張"
         }
       ],
-      "flavour": "初始兩張牌直接結算時，+15 傷害。"
+      "flavour": "初始兩張牌直接結算時，+45 傷害。"
+    },
+    {
+      "id": "gao_sheng",
+      "name": "高昇",
+      "faction": "群",
+      "rarity": "Common",
+      "skill_name": "穩健",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "加法",
+          "value": 45,
+          "condition": "玩家要牌次數 ≤ 1"
+        }
+      ],
+      "flavour": "要牌不超過一次即停牌結算時，+45 傷害。"
+    },
+    {
+      "id": "yan_zheng",
+      "name": "嚴政",
+      "faction": "群",
+      "rarity": "Common",
+      "skill_name": "將領",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "加法",
+          "value": 45,
+          "condition": "玩家點數 ≥ 17 且 ≤ 20"
+        }
+      ],
+      "flavour": "點數在 17～20 區間結算時，+45 傷害。"
     }
   ]
 }

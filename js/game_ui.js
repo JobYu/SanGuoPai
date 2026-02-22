@@ -47,7 +47,7 @@ class GameState {
         const generated = [
             'zhang_jiao', 'yu_jin', 'ma_dai', 'ding_feng', 'xia_hou_dun',
             'guan_ping', 'sun_shang_xiang', 'lu_xun', 'zhang_liao',
-            'huang_yue_ying', 'lu_bu_boss', 'cao_cao', 'diao_chan', 'cheng_yuan_zhi', 'deng_mao'
+            'huang_yue_ying', 'lu_bu_boss', 'cao_cao', 'diao_chan', 'cheng_yuan_zhi', 'deng_mao', 'gao_sheng', 'yan_zheng'
         ];
 
         if (generated.includes(filename)) {
@@ -307,7 +307,8 @@ class GameState {
             breakdown.result = 'BUST';
         } else if (ePoints > 21 || pPoints > ePoints || pPoints === 21) {
             breakdown.result = 'WIN';
-            breakdown.base = (pPoints === 21 ? 210 : (pPoints - (ePoints > 21 ? 0 : ePoints)) * 10);
+            const multiplier = 10 + (21 - pPoints);
+            breakdown.base = (pPoints * multiplier) + pPoints;
             breakdown.skills = [...additive, ...multipliers];
             breakdown.total = damageResult;
             this.enemyMorale -= damageResult;
@@ -342,7 +343,7 @@ class GameState {
 
         // Probability of enemy card
         const enemyAsGen = all.find(g => g.name === this.currentEnemy.name);
-        const lowChanceEnemies = ['cheng_yuan_zhi', 'deng_mao'];
+        const lowChanceEnemies = ['cheng_yuan_zhi', 'deng_mao', 'gao_sheng', 'yan_zheng'];
         const recruitChance = lowChanceEnemies.includes(this.currentEnemy.id) ? 0.25 : 0.5;
         if (enemyAsGen && Math.random() < recruitChance && !this.selectedGenerals.find(g => g.id === enemyAsGen.id)) {
             const priceMap = { 'Common': 100, 'Uncommon': 250, 'Rare': 600, 'Legendary': 1500 };
@@ -721,12 +722,17 @@ class GameState {
         let resultBody = '';
 
         if (b.result === 'WIN') {
-            const calcStr = b.pPoints === 21 ? `21 點獎勵: 21 x 10` : `(${b.pPoints} 點 - ${b.ePoints > 21 ? '敵爆牌' : b.ePoints + ' 點'}) x 10`;
+            const currentMultiplier = 10 + (21 - b.pPoints);
+            const baseValue = b.pPoints * currentMultiplier;
+            const calcStr = `基礎獎勵 (${b.pPoints} 點 x ${currentMultiplier} 倍) + 手牌點數 (${b.pPoints})`;
             resultTitle = `<h2 class="win">${b.isBlackjack ? '完美 Blackjack' : '博弈獲勝！'}</h2>`;
             resultBody = `
                 <div class="breakdown">
                     ${pointsHTML}
-                    <p class="calc-formula">${calcStr} = ${b.base}</p>
+                    <div class="calc-formula" style="color: var(--gold-bright); font-size: 1.1rem; border: 1px dashed rgba(212,175,55,0.3); padding: 10px; border-radius: 8px;">
+                        <div style="font-size: 0.9rem; color: #888; margin-bottom: 5px;">* 勝利點數越小，獎勵倍數越高</div>
+                        ${calcStr} = ${b.base}
+                    </div>
                     <hr>
                     <div class="skill-list">
                         ${b.skills.map(s => `<p>${s.name}: ${s.type === '加法' ? '+' : 'x'}${s.value}</p>`).join('')}

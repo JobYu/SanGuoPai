@@ -13,12 +13,8 @@ class CombatEngine {
         if (playerPoints <= enemyPoints && enemyPoints <= 21) return 0; // Lose or Push
 
         let baseDamage = 0;
-        if (playerPoints === 21) {
-            baseDamage = 210;
-        } else {
-            const effectiveEnemyPoints = enemyPoints > 21 ? 0 : enemyPoints;
-            baseDamage = (playerPoints - effectiveEnemyPoints) * 10;
-        }
+        const multiplier = 10 + (21 - playerPoints);
+        baseDamage = (playerPoints * multiplier) + playerPoints;
 
         const totalAdditive = additiveSkills.reduce((acc, val) => acc + val, 0);
         let totalMultiplier = multiplierSkills.reduce((acc, val) => acc * val, 1);
