@@ -285,10 +285,55 @@ class GameState {
         const multipliers = [];
 
         this.selectedGenerals.forEach(g => {
-            if (g.skill_trigger === '結算時') {
+            const isSettlement = g.skill_trigger === '結算時';
+            const is21Trigger = g.skill_trigger === '達成 21 點時' && pPoints === 21;
+
+            if (isSettlement || is21Trigger) {
+                let effectApplied = false;
                 g.skill_effects.forEach(eff => {
-                    if (eff.type === '加法') additive.push({ name: g.name, value: eff.value, type: '加法' });
-                    if (eff.type === '乘法') multipliers.push({ name: g.name, value: eff.value, type: '乘法' });
+                    let shouldApply = false;
+                    const cond = eff.condition;
+
+                    if (!cond || cond === '該次結算' || cond === '無') {
+                        shouldApply = true;
+                    } else if (cond === '玩家點數恰為 21') {
+                        if (pPoints === 21) shouldApply = true;
+                    } else if (cond === '否則') {
+                        if (!effectApplied) shouldApply = true;
+                    } else if (cond === '玩家點數 ≥ 15') {
+                        if (pPoints >= 15) shouldApply = true;
+                    } else if (cond === '玩家點數 ≥ 17 且 ≤ 20') {
+                        if (pPoints >= 17 && pPoints <= 20) shouldApply = true;
+                    } else if (cond === '敵將點數 ≥ 17') {
+                        if (ePoints >= 17) shouldApply = true;
+                    } else if (cond === '敵將點數 ≥ 18') {
+                        if (ePoints >= 18) shouldApply = true;
+                    } else if (cond === '玩家要牌次數為 0') {
+                        if (this.hitsThisRound === 0) shouldApply = true;
+                    } else if (cond === '玩家要牌次數為 1') {
+                        if (this.hitsThisRound === 1) shouldApply = true;
+                    } else if (cond === '玩家要牌次數 ≤ 1') {
+                        if (this.hitsThisRound <= 1) shouldApply = true;
+                    } else if (cond === '玩家要牌次數 ≥ 2') {
+                        if (this.hitsThisRound >= 2) shouldApply = true;
+                    } else if (cond === '玩家手牌數為 2 張') {
+                        if (this.playerHand.cards.length === 2) shouldApply = true;
+                    } else if (cond === '玩家手牌數 ≥ 4 張') {
+                        if (this.playerHand.cards.length >= 4) shouldApply = true;
+                    } else if (cond.includes('玩家點數大於敵將且差 ≥')) {
+                        const diff = parseInt(cond.match(/\d+/)[0]);
+                        if ((pPoints - ePoints) >= diff) shouldApply = true;
+                    } else {
+                        // Fallback: if we haven't implemented it, assume it applies for now
+                        // to maintain existing (though possibly loose) behavior
+                        shouldApply = true;
+                    }
+
+                    if (shouldApply) {
+                        if (eff.type === '加法') additive.push({ name: g.name, value: eff.value, type: '加法' });
+                        if (eff.type === '乘法') multipliers.push({ name: g.name, value: eff.value, type: '乘法' });
+                        effectApplied = true;
+                    }
                 });
             }
         });
