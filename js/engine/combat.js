@@ -13,7 +13,7 @@ class CombatEngine {
         if (playerPoints <= enemyPoints && enemyPoints <= 21) return 0; // Lose or Push
 
         let baseDamage = 0;
-        if (isBlackjack) {
+        if (playerPoints === 21) {
             baseDamage = 210;
         } else {
             const effectiveEnemyPoints = enemyPoints > 21 ? 0 : enemyPoints;

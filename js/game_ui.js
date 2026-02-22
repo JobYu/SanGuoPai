@@ -1,6 +1,6 @@
 // Game UI and State Management
 import dataManager from './data_manager.js';
-import { Deck, Hand } from './engine/blackjack.js';
+import { Deck, Hand, SUITS, RANKS } from './engine/blackjack.js';
 import AIEngine from './engine/ai.js';
 import CombatEngine from './engine/combat.js';
 
@@ -254,9 +254,9 @@ class GameState {
 
         if (pPoints > 21) {
             breakdown.result = 'BUST';
-        } else if (ePoints > 21 || pPoints > ePoints) {
+        } else if (ePoints > 21 || pPoints > ePoints || pPoints === 21) {
             breakdown.result = 'WIN';
-            breakdown.base = (breakdown.isBlackjack ? 210 : (pPoints - (ePoints > 21 ? 0 : ePoints)) * 10);
+            breakdown.base = (pPoints === 21 ? 210 : (pPoints - (ePoints > 21 ? 0 : ePoints)) * 10);
             breakdown.skills = [...additive, ...multipliers];
             breakdown.total = damageResult;
             this.enemyMorale -= damageResult;
@@ -377,6 +377,14 @@ class GameState {
                 <div id="main-area">
                     ${this.currentScreen !== 'START' ? `
                     <div id="left-bar">
+                        ${this.currentEnemy ? `
+                        <div class="stat-box enemy-stat" style="margin-bottom: 15px;">
+                            <div style="font-size: 0.8rem; color: #888; margin-bottom: 5px;">第 ${this.currentEnemy.stage_index} 場對決</div>
+                            <h3 style="font-size: 1rem; color: var(--gold-bright);">目標：${this.currentEnemy.name}</h3>
+                            <progress value="${this.currentEnemy.morale - Math.max(0, this.enemyMorale)}" max="${this.currentEnemy.morale}" class="side-progress"></progress>
+                            <div class="score-display" style="font-size: 0.9rem; margin-top: 5px; color: var(--gold-bright);">${Math.max(0, this.currentEnemy.morale - Math.max(0, this.enemyMorale))} / ${this.currentEnemy.morale}</div>
+                        </div>
+                        ` : ''}
                         <div class="stat-box">
                             <h3>金錢 ($)</h3>
                             <div class="stat-val" style="color: var(--gold)">$${this.money}</div>
@@ -446,12 +454,7 @@ class GameState {
         const enemy = this.currentEnemy;
         return `
             <div class="battle-scene">
-                <div class="target-box">
-                    <div style="font-size: 0.8rem; color: #888; margin-bottom: 5px;">第 ${enemy.stage_index} 場對決</div>
-                    <h3>目標分數：${enemy.name}</h3>
-                    <progress value="${enemy.morale - Math.max(0, this.enemyMorale)}" max="${enemy.morale}"></progress>
-                    <div class="score-display">${Math.max(0, enemy.morale - Math.max(0, this.enemyMorale))} / ${enemy.morale}</div>
-                </div>
+                <div style="height: 20px;"></div> <!-- Spacer -->
                 
                 <div class="hand-row enemy-hand">
                     ${this.enemyHand.cards.map((c, i) =>
@@ -487,12 +490,9 @@ class GameState {
                              style="background: #4da6ff">
                         棄牌 (Discard) ${this.discards}
                     </button>
-                </div>
-
-                <div class="deck-area" onclick="game.toggleDeckView()">
-                    <div class="deck-stack">
-                        <div class="deck-count">${this.deck.cards.length}</div>
-                        <div class="deck-label">DECK</div>
+                    <div onclick="game.toggleDeckView()" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 5px 15px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; margin-left: 10px;">
+                        <span style="font-size: 0.8rem; color: #888;">牌組</span>
+                        <strong style="font-size: 1.2rem; color: var(--gold-bright);">${this.deck.cards.length}</strong>
                     </div>
                 </div>
             </div>
@@ -508,23 +508,33 @@ class GameState {
     }
 
     renderDeckModal() {
-        // Group remaining cards by rank or suit for better display? 
-        // Let's just list them sorted for prototype
-        const sortedCards = [...this.deck.cards].sort((a, b) => {
-            const suits = { '♠': 0, '♥': 1, '♣': 2, '♦': 3 };
-            if (suits[a.suit] !== suits[b.suit]) return suits[a.suit] - suits[b.suit];
-            const ranks = { 'A': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13 };
-            return ranks[a.rank] - ranks[b.rank];
-        });
+        const inDeck = (suit, rank) => this.deck.cards.some(c => c.suit === suit && c.rank === rank);
 
         return `
             <div class="overlay" onclick="game.toggleDeckView()">
-                <div class="modal deck-modal" onclick="event.stopPropagation()">
-                    <h2>剩餘牌組 (${sortedCards.length} 張)</h2>
-                    <div class="deck-grid">
-                        ${sortedCards.map(c => `<div class="mini-card">${c.toString()}</div>`).join('')}
+                <div class="modal deck-modal" onclick="event.stopPropagation()" style="max-width: 850px; min-width: 800px;">
+                    <h2 style="margin-bottom: 20px;">剩餘牌組狀態 (${this.deck.cards.length} / 52)</h2>
+                    <div class="deck-display">
+                        ${SUITS.map(suit => `
+                            <div class="deck-row">
+                                ${RANKS.map(rank => {
+            const available = inDeck(suit, rank);
+            const isRed = (suit === '♥' || suit === '♦');
+            return `
+                                        <div class="mini-card ${available ? '' : 'played'}" 
+                                             style="color: ${available ? (isRed ? '#ff4d4d' : '#eee') : '#444'}">
+                                            ${suit}${rank}
+                                        </div>
+                                    `;
+        }).join('')}
+                            </div>
+                        `).join('')}
                     </div>
-                    <button onclick="game.toggleDeckView()" style="margin-top: 20px;">關閉</button>
+                    <div style="margin-top: 30px; font-size: 0.9rem; color: #666; display: flex; justify-content: center; gap: 20px;">
+                        <span>● 正常顯示：牌組中剩餘的牌</span>
+                        <span>● 灰色透明：遊戲中已出現或領取的牌</span>
+                    </div>
+                    <button onclick="game.toggleDeckView()" style="margin-top: 30px;">關閉回歸戰場</button>
                 </div>
             </div>
         `;
@@ -552,10 +562,10 @@ class GameState {
         `;
 
         const pointsHTML = `
-            <div class="calc-row">
-                <div>玩家: <strong>${b.pPoints}</strong> ${b.pPoints > 21 ? '(爆)' : ''}</div>
-                <div style="font-size: 1.5rem; color: #666;">VS</div>
-                <div>敵將: <strong>${b.ePoints}</strong> ${b.ePoints > 21 ? '(爆)' : ''}</div>
+            <div class="calc-row" style="display: flex; gap: 30px; justify-content: center; align-items: center; margin: 15px 0; font-size: 1.2rem;">
+                <div>玩家: <strong style="color: var(--gold-bright); font-size: 1.8rem;">${b.pPoints}</strong> ${b.pPoints > 21 ? '<span style="color: #ff4d4d">(爆)</span>' : ''}</div>
+                <div style="font-size: 1.5rem; color: #666; font-weight: bold;">VS</div>
+                <div>敵將: <strong style="color: #ff4d4d; font-size: 1.8rem;">${b.ePoints}</strong> ${b.ePoints > 21 ? '<span style="color: #ff4d4d">(爆)</span>' : ''}</div>
             </div>
         `;
 
@@ -563,8 +573,8 @@ class GameState {
         let resultBody = '';
 
         if (b.result === 'WIN') {
-            const calcStr = b.isBlackjack ? `完美 21 點 (Blackjack)` : `(${b.pPoints} 點 - ${b.ePoints > 21 ? '敵爆牌' : b.ePoints + ' 點'}) x 10`;
-            resultTitle = `<h2 class="win">博弈獲勝！</h2>`;
+            const calcStr = b.pPoints === 21 ? `21 點獎勵: 21 x 10` : `(${b.pPoints} 點 - ${b.ePoints > 21 ? '敵爆牌' : b.ePoints + ' 點'}) x 10`;
+            resultTitle = `<h2 class="win">${b.isBlackjack ? '完美 Blackjack' : '博弈獲勝！'}</h2>`;
             resultBody = `
                 <div class="breakdown">
                     ${pointsHTML}
