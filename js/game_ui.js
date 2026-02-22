@@ -21,6 +21,9 @@ class GameState {
         this.turn = 'PLAYER'; // PLAYER, ENEMY
         this.logs = [];
         this.viewingDeck = false;
+        this.viewingEnemyDetail = false;
+        this.viewingGeneralDetail = false;
+        this.selectedGeneralIndex = -1;
 
         this.hitLimit = 3;
         this.hitsThisRound = 0;
@@ -29,6 +32,54 @@ class GameState {
         this.slotUpgradePrice = 500;
         this.leaderboard = this.getLeaderboard();
         this.defeatedEnemies = []; // Track defeated enemy names
+    }
+
+    getCharacterImage(id) {
+        if (!id) return null;
+
+        const basePath = './assets/avatars/';
+        const suffix = '_sexy_pixel.png';
+
+        // Special mapping for lu_bu as I used 'lu_bu_boss' in filename
+        let filename = id;
+        if (id === 'lu_bu') filename = 'lu_bu_boss';
+
+        const generated = [
+            'zhang_jiao', 'yu_jin', 'ma_dai', 'ding_feng', 'xia_hou_dun',
+            'guan_ping', 'sun_shang_xiang', 'lu_xun', 'zhang_liao',
+            'huang_yue_ying', 'lu_bu_boss', 'cao_cao', 'diao_chan', 'cheng_yuan_zhi', 'deng_mao'
+        ];
+
+        if (generated.includes(filename)) {
+            return `${basePath}${filename}${suffix}`;
+        }
+        return null;
+    }
+
+    showEnemyDetail() {
+        if (this.currentEnemy) {
+            this.viewingEnemyDetail = true;
+            this.render();
+        }
+    }
+
+    closeEnemyDetail() {
+        this.viewingEnemyDetail = false;
+        this.render();
+    }
+
+    showGeneralDetail(index) {
+        if (this.selectedGenerals[index]) {
+            this.selectedGeneralIndex = index;
+            this.viewingGeneralDetail = true;
+            this.render();
+        }
+    }
+
+    closeGeneralDetail() {
+        this.viewingGeneralDetail = false;
+        this.selectedGeneralIndex = -1;
+        this.render();
     }
 
     async init() {
@@ -291,7 +342,11 @@ class GameState {
 
         // Probability of enemy card
         const enemyAsGen = all.find(g => g.name === this.currentEnemy.name);
-        if (enemyAsGen && Math.random() < 0.5 && !this.selectedGenerals.find(g => g.id === enemyAsGen.id)) {
+        const lowChanceEnemies = ['cheng_yuan_zhi', 'deng_mao'];
+        const recruitChance = lowChanceEnemies.includes(this.currentEnemy.id) ? 0.25 : 0.5;
+        if (enemyAsGen && Math.random() < recruitChance && !this.selectedGenerals.find(g => g.id === enemyAsGen.id)) {
+            const priceMap = { 'Common': 100, 'Uncommon': 250, 'Rare': 600, 'Legendary': 1500 };
+            enemyAsGen.price = priceMap[enemyAsGen.rarity] || 200;
             this.rewardOptions.push(enemyAsGen);
         }
 
@@ -360,25 +415,39 @@ class GameState {
                 ${this.currentScreen !== 'START' ? `
                 <div id="top-bar">
                     <div class="generals-strip">
-                        ${this.selectedGenerals.map((g, i) => `
-                            <div class="gen-mini tooltip-trigger">
-                                <span>${g.name}</span>
-                                <button class="sell-btn" onclick="game.sellGeneral(${i}); event.stopPropagation();">售</button>
+                        ${this.selectedGenerals.map((g, i) => {
+            const img = this.getCharacterImage(g.id);
+            return `
+                            <div class="gen-mini tooltip-trigger" style="padding: 0; overflow: hidden; cursor: pointer;" onclick="game.showGeneralDetail(${i})">
+                                ${img ? `<img src="${img}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; z-index: 1;">` : `<span style="position: relative; z-index: 2; background: rgba(0,0,0,0.5); padding: 2px 5px; border-radius: 4px;">${g.name}</span>`}
+                                <button class="sell-btn" style="z-index: 3;" onclick="game.sellGeneral(${i}); event.stopPropagation();">售</button>
                                 <div class="tooltip">
                                     <strong>${g.name} [${g.rarity}]</strong>
                                     ${g.flavour}
                                 </div>
                             </div>
-                        `).join('')}
-                        ${new Array(this.maxSlots - this.selectedGenerals.length).fill('<div class="gen-mini empty">?</div>').join('')}
-                    </div>
-                </div>
-                ` : ''}
-                <div id="main-area">
-                    ${this.currentScreen !== 'START' ? `
-                    <div id="left-bar">
-                        ${this.currentEnemy ? `
-                        <div class="stat-box enemy-stat" style="margin-bottom: 15px;">
+                        `}).join('')}
+                         ${this.currentEnemy ? `
+                             <div style="flex-grow: 1;"></div>
+                             <div class="gen-mini tooltip-trigger" 
+                                  style="border-color: #ff4d4d; background: rgba(255, 77, 77, 0.2); margin-left: auto; padding: 0; overflow: hidden; cursor: pointer;"
+                                  onclick="game.showEnemyDetail()">
+                                 ${this.getCharacterImage(this.currentEnemy.id) ? `<img src="${this.getCharacterImage(this.currentEnemy.id)}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; z-index: 1;">` : `<span style="position: relative; z-index: 2; background: rgba(0,0,0,0.5); padding: 2px 5px; border-radius: 4px; color: #ff4d4d;">${this.currentEnemy.name}</span>`}
+                                 <div class="tooltip">
+                                     <strong style="color: #ff4d4d;">${this.currentEnemy.name} [敵將]</strong>
+                                     ${this.currentEnemy.flavour}
+                                     <div style="margin-top: 5px; color: #aaa; font-size: 0.8rem;">點擊查看詳情</div>
+                                 </div>
+                             </div>
+                         ` : ''}
+                     </div>
+                 </div>
+                 ` : ''}
+                 <div id="main-area">
+                     ${this.currentScreen !== 'START' ? `
+                     <div id="left-bar">
+                         ${this.currentEnemy ? `
+                         <div class="stat-box enemy-stat" style="margin-bottom: 15px;">
                             <div style="font-size: 0.8rem; color: #888; margin-bottom: 5px;">第 ${this.currentEnemy.stage_index} 場對決</div>
                             <h3 style="font-size: 1rem; color: var(--gold-bright);">目標：${this.currentEnemy.name}</h3>
                             <progress value="${this.currentEnemy.morale - Math.max(0, this.enemyMorale)}" max="${this.currentEnemy.morale}" class="side-progress"></progress>
@@ -452,9 +521,10 @@ class GameState {
 
     renderBattleHTML() {
         const enemy = this.currentEnemy;
+
         return `
             <div class="battle-scene">
-                <div style="height: 20px;"></div> <!-- Spacer -->
+                <div style="height: 30px;"></div>
                 
                 <div class="hand-row enemy-hand">
                     ${this.enemyHand.cards.map((c, i) =>
@@ -501,10 +571,88 @@ class GameState {
 
     renderOverlay() {
         if (this.viewingDeck) return this.renderDeckModal();
+        if (this.viewingEnemyDetail) return this.renderEnemyDetailModal();
+        if (this.viewingGeneralDetail) return this.renderGeneralDetailModal();
         if (this.currentScreen === 'SETTLEMENT') return this.renderSettlementHTML();
         if (this.currentScreen === 'REWARD') return this.renderRewardHTML();
         if (this.currentScreen === 'BATTLE' && this.turn === 'PLAYER' && this.hands <= 0 && this.enemyMorale > 0) return this.renderGameOverHTML();
         return '';
+    }
+
+    renderGeneralDetailModal() {
+        const general = this.selectedGenerals[this.selectedGeneralIndex];
+        if (!general) return '';
+        const img = this.getCharacterImage(general.id);
+
+        return `
+            <div class="overlay" onclick="game.closeGeneralDetail()">
+                <div class="modal" onclick="event.stopPropagation()" style="max-width: 500px; padding: 40px; text-align: left;">
+                    <div style="display: flex; gap: 30px; align-items: flex-start;">
+                        ${img ? `<div style="width: 150px; height: 200px; border: 2px solid var(--gold); border-radius: 8px; overflow: hidden; background: #000; flex-shrink: 0;">
+                            <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>` : ''}
+                        <div>
+                            <h2 style="color: var(--gold-bright); margin-bottom: 5px;">${general.name}</h2>
+                            <div style="color: var(--gold); font-size: 0.9rem; margin-bottom: 15px;">${general.rarity} | ${general.faction}軍</div>
+                            
+                            <div style="margin-bottom: 20px; line-height: 1.6; font-style: italic; color: #aaa; border-left: 3px solid var(--gold); padding-left: 15px;">
+                                "${general.flavour}"
+                            </div>
+                            
+                            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+                                <div style="margin-bottom: 10px; font-weight: bold; color: var(--gold-bright);">技能：${general.skill_name}</div>
+                                <div style="color: #eee; font-size: 0.9rem;">觸發：${general.skill_trigger}</div>
+                                <div style="color: #ccc; font-size: 0.85rem; margin-top: 5px;">
+                                    ${general.skill_effects.map(e => `● ${e.condition || '無條件'}：${e.type}${e.value}`).join('<br>')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="game.closeGeneralDetail()" style="margin-top: 30px; width: 100%;">返回戰場</button>
+                </div>
+            </div>
+        `;
+    }
+
+    renderEnemyDetailModal() {
+        const enemy = this.currentEnemy;
+        const img = this.getCharacterImage(enemy.id);
+
+        return `
+            <div class="overlay" onclick="game.closeEnemyDetail()">
+                <div class="modal" onclick="event.stopPropagation()" style="max-width: 500px; padding: 40px; text-align: left;">
+                    <div style="display: flex; gap: 30px; align-items: flex-start;">
+                        ${img ? `<div style="width: 150px; height: 200px; border: 2px solid var(--gold); border-radius: 8px; overflow: hidden; background: #000; flex-shrink: 0;">
+                            <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>` : ''}
+                        <div>
+                            <h2 style="color: var(--gold-bright); margin-bottom: 5px;">${enemy.name}</h2>
+                            <div style="color: #ff4d4d; font-size: 0.9rem; margin-bottom: 15px;">敵軍大將</div>
+                            
+                            <div style="margin-bottom: 20px; line-height: 1.6; font-style: italic; color: #aaa; border-left: 3px solid #444; padding-left: 15px;">
+                                "${enemy.flavour}"
+                            </div>
+                            
+                            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+                                <div style="margin-bottom: 10px; display: flex; justify-content: space-between;">
+                                    <span style="color: #888;">AI 性格：</span>
+                                    <span style="color: #eee;">${enemy.ai_tendency}</span>
+                                </div>
+                                <div style="margin-bottom: 10px; display: flex; justify-content: space-between;">
+                                    <span style="color: #888;">停牌閾值：</span>
+                                    <span style="color: #eee;">${enemy.ai_stand_threshold} 點</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: #888;">初始士氣：</span>
+                                    <span style="color: #eee;">${enemy.morale}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="game.closeEnemyDetail()" style="margin-top: 30px; width: 100%;">返回戰場</button>
+                </div>
+            </div>
+        `;
     }
 
     renderDeckModal() {
@@ -683,7 +831,7 @@ class GameState {
                 <div class="modal">
                     <h2 class="lose" style="font-size: 3rem; margin-bottom: 30px;">敗走麥城...</h2>
                     <div style="display: flex; gap: 20px; justify-content: center;">
-                        <button onclick="game.startBattle(1)">再試一次</button>
+                        <button onclick="game.startNewGame(); game.startBattle(1)">再試一次</button>
                         <button onclick="game.startNewGame()" style="background: #444; border-color: #666;">回到標題</button>
                     </div>
                 </div>

@@ -94,6 +94,7 @@ body {
 .generals-strip {
     display: flex;
     gap: 12px;
+    width: 100%;
 }
 
 .gen-mini {

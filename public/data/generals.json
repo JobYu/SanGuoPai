@@ -408,6 +408,38 @@
       ],
       "bonus_discards": 1,
       "flavour": "敵將點數 ≥ 17 時倍率 x1.25；+1 棄牌次數。"
+    },
+    {
+      "id": "cheng_yuan_zhi",
+      "name": "程遠志",
+      "faction": "群",
+      "rarity": "Common",
+      "skill_name": "賊寇",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "加法",
+          "value": 15,
+          "condition": "玩家點數 ≥ 15"
+        }
+      ],
+      "flavour": "點數 ≥ 15 時，結算 +15 傷害。"
+    },
+    {
+      "id": "deng_mao",
+      "name": "鄧茂",
+      "faction": "群",
+      "rarity": "Common",
+      "skill_name": "驍勇",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "加法",
+          "value": 15,
+          "condition": "玩家手牌數為 2 張"
+        }
+      ],
+      "flavour": "初始兩張牌直接結算時，+15 傷害。"
     }
   ]
 }
