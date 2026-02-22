@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDEs/Tools
+.cursor/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project specific
+superpowers-main/
+*.log
+.env

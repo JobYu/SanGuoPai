@@ -1,0 +1,430 @@
+:root {
+    --bg-color: #0d0d0d;
+    --text-color: #f5f5f5;
+    --accent-red: #c0392b;
+    --accent-dark-red: #8b0000;
+    --gold: #d4af37;
+    --gold-bright: #ffd700;
+    --glass: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --shadow-main: 0 20px 50px rgba(0, 0, 0, 0.8);
+    --font-main: 'Noto Sans TC', sans-serif;
+    --font-title: 'Ma Shan Zheng', cursive;
+    --font-ui: 'ZCOOL KuaiLe', cursive;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    background-image:
+        radial-gradient(circle at 10% 20%, rgba(192, 57, 43, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.1) 0%, transparent 40%),
+        url('https://www.transparenttextures.com/patterns/dark-leather.png');
+    color: var(--text-color);
+    font-family: var(--font-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+/* Base Layout */
+#game-container {
+    width: 1280px;
+    height: 720px;
+    background: #111;
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-main);
+}
+
+.game-layout {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+/* Top Bar */
+#top-bar {
+    height: 110px;
+    background: linear-gradient(to bottom, #111, #1a1a1a);
+    border-bottom: 2px solid var(--gold);
+    display: flex;
+    align-items: center;
+    padding: 0 40px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.6);
+    z-index: 10;
+}
+
+.generals-strip {
+    display: flex;
+    gap: 12px;
+}
+
+.gen-mini {
+    width: 85px;
+    height: 100px;
+    background: var(--glass);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1rem;
+    font-family: var(--font-ui);
+    color: var(--gold-bright);
+    text-align: center;
+    padding: 8px;
+    position: relative;
+    cursor: help;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    backdrop-filter: blur(5px);
+}
+
+.gen-mini:hover {
+    transform: translateY(-5px) scale(1.05);
+    background: rgba(212, 175, 55, 0.15);
+    border-color: var(--gold-bright);
+    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+}
+
+.sell-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 26px;
+    height: 26px;
+    background: var(--accent-red);
+    border: 2px solid #fff;
+    border-radius: 50%;
+    color: white;
+    font-size: 0.75rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: 0.2s;
+}
+
+.gen-mini:hover .sell-btn {
+    opacity: 1;
+}
+
+/* Main Content Area */
+#main-area {
+    display: flex;
+    flex-grow: 1;
+    background-image:
+        linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+        url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+}
+
+#left-bar {
+    width: 260px;
+    background: rgba(0, 0, 0, 0.4);
+    border-right: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    padding: 30px 20px;
+    backdrop-filter: blur(10px);
+}
+
+.stat-box {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    text-align: center;
+}
+
+.stat-box h3 {
+    font-family: var(--font-ui);
+    color: var(--gold);
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+}
+
+.stat-val {
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: var(--gold-bright);
+    text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+}
+
+/* Battle Scene */
+#center-battle {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+.battle-scene {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.target-box {
+    text-align: center;
+}
+
+.target-box h3 {
+    font-family: var(--font-title);
+    font-size: 2.2rem;
+    color: var(--gold-bright);
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+}
+
+progress {
+    width: 450px;
+    height: 14px;
+    appearance: none;
+    border-radius: 7px;
+    overflow: hidden;
+    border: 1px solid var(--glass-border);
+}
+
+progress::-webkit-progress-bar {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+progress::-webkit-progress-value {
+    background: linear-gradient(to right, var(--accent-red), var(--accent-dark-red));
+    box-shadow: 0 0 10px var(--accent-red);
+}
+
+/* Cards */
+.hand-row {
+    display: flex;
+    gap: 15px;
+    perspective: 1000px;
+}
+
+.playing-card {
+    width: 110px;
+    height: 155px;
+    background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%);
+    color: #111;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.2rem;
+    font-family: var(--font-ui);
+    font-weight: bold;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.playing-card:hover {
+    transform: translateY(-15px) rotate(2deg);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+}
+
+.playing-card.selected {
+    transform: translateY(-30px);
+    box-shadow: 0 0 20px var(--gold-bright);
+    border: 3px solid var(--gold-bright);
+}
+
+.playing-card.back {
+    background: linear-gradient(135deg, var(--accent-red) 0%, var(--accent-dark-red) 100%);
+    border: 4px solid #fff;
+    position: relative;
+}
+
+.playing-card.back::after {
+    content: '派';
+    font-family: var(--font-title);
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 4rem;
+}
+
+/* Actions */
+.action-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px 30px;
+    border-radius: 50px;
+    border: 1px solid var(--glass-border);
+}
+
+.point-bubble {
+    background: var(--gold);
+    color: #111;
+    padding: 10px 25px;
+    border-radius: 25px;
+    font-weight: 900;
+    font-size: 1.3rem;
+    font-family: var(--font-ui);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+button {
+    background: linear-gradient(to bottom, var(--accent-red), var(--accent-dark-red));
+    color: white;
+    border: 1px solid var(--gold);
+    padding: 10px 25px;
+    font-size: 1.1rem;
+    font-family: var(--font-ui);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 0 var(--accent-dark-red);
+}
+
+button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--accent-dark-red);
+    filter: brightness(1.1);
+}
+
+button:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 var(--accent-dark-red);
+}
+
+button:disabled {
+    filter: grayscale(1);
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Logs */
+.battle-logs {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 12px;
+    border-radius: 12px;
+    width: 90%;
+    min-height: 60px;
+    text-align: center;
+    color: #aaa;
+    font-size: 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Overlay & Modals */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(8px);
+}
+
+.modal {
+    background: #1a1a1a;
+    padding: 40px;
+    border: 1px solid var(--gold);
+    border-radius: 16px;
+    text-align: center;
+    min-width: 550px;
+    max-height: 90%;
+    overflow-y: auto;
+    box-shadow: 0 0 60px rgba(0, 0, 0, 0.8);
+}
+
+.title-screen h1 {
+    font-family: var(--font-title);
+    font-size: 6rem;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+    margin-bottom: 10px;
+}
+
+.reward-card {
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 20px;
+    transition: 0.3s;
+}
+
+.reward-card:hover:not(.cannot-afford) {
+    border-color: var(--gold-bright);
+    background: rgba(212, 175, 55, 0.1);
+}
+
+/* Tooltip */
+.tooltip {
+    display: none;
+    position: absolute;
+    top: 110px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 240px;
+    background: #111;
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    color: #ddd;
+    padding: 15px;
+    font-size: 0.85rem;
+    z-index: 2000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 1);
+    pointer-events: none;
+}
+
+.tooltip-trigger:hover .tooltip {
+    display: block;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--glass-border);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gold);
+}

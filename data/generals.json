@@ -1,0 +1,413 @@
+{
+  "schema_version": "1.0",
+  "damage_formula": "(基礎傷害 + 加法加成) × 乘法倍率",
+  "generals": [
+    {
+      "id": "zhang_jiao",
+      "name": "張角",
+      "faction": "群",
+      "rarity": "Common",
+      "skill_name": "太平要術",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "加法",
+          "value": 20,
+          "condition": null
+        }
+      ],
+      "flavour": "結算時無條件 +20 傷害。"
+    },
+    {
+      "id": "yu_jin",
+      "name": "於禁",
+      "faction": "魏",
+      "rarity": "Common",
+      "skill_name": "持重",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "加法",
+          "value": 25,
+          "condition": "玩家未要牌即直接出牌（僅初始兩張）"
+        }
+      ],
+      "flavour": "初始兩張牌直接出牌則 +25 傷害。"
+    },
+    {
+      "id": "ma_dai",
+      "name": "馬岱",
+      "faction": "蜀",
+      "rarity": "Common",
+      "skill_name": "潛襲",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "加法",
+          "value": 15,
+          "condition": "玩家手牌數 ≥ 4 張"
+        }
+      ],
+      "flavour": "手牌 ≥ 4 張時，結算 +15 傷害。"
+    },
+    {
+      "id": "ding_feng",
+      "name": "丁奉",
+      "faction": "吳",
+      "rarity": "Common",
+      "skill_name": "短兵",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "加法",
+          "value": 20,
+          "condition": "玩家點數為 17～20"
+        }
+      ],
+      "flavour": "點數在 17～20 之間時，+20 傷害。"
+    },
+    {
+      "id": "xia_hou_dun",
+      "name": "夏侯惇",
+      "faction": "魏",
+      "rarity": "Uncommon",
+      "skill_name": "剛烈",
+      "skill_trigger": "爆牌時",
+      "skill_effects": [
+        {
+          "type": "乘法",
+          "value": 1.2,
+          "condition": "下一回合結算時生效（僅下一場）"
+        }
+      ],
+      "flavour": "本場若爆牌，下一場倍率 x1.2。"
+    },
+    {
+      "id": "guan_ping",
+      "name": "關平",
+      "faction": "蜀",
+      "rarity": "Uncommon",
+      "skill_name": "隨父從征",
+      "skill_trigger": "要牌時",
+      "skill_effects": [
+        {
+          "type": "加法",
+          "value": 25,
+          "condition": "本回合要牌得到 A 則結算時額外加上"
+        }
+      ],
+      "flavour": "要牌抽到 A 時，結算 +25 傷害。"
+    },
+    {
+      "id": "sun_shang_xiang",
+      "name": "孫尚香",
+      "faction": "吳",
+      "rarity": "Uncommon",
+      "skill_name": "梟姬",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "乘法",
+          "value": 1.25,
+          "condition": "手牌中至少 2 張同花色"
+        }
+      ],
+      "flavour": "手牌有 2 張以上同花色時，倍率 x1.25。"
+    },
+    {
+      "id": "hua_xiong",
+      "name": "華雄",
+      "faction": "群",
+      "rarity": "Uncommon",
+      "skill_name": "搦戰",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "乘法",
+          "value": 1.3,
+          "condition": "敵將點數 ≥ 18"
+        }
+      ],
+      "flavour": "敵將點數 ≥ 18 時，倍率 x1.3。"
+    },
+    {
+      "id": "lu_xun",
+      "name": "陸遜",
+      "faction": "吳",
+      "rarity": "Rare",
+      "skill_name": "謙遜",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "乘法",
+          "value": 1.5,
+          "condition": "玩家點數恰為 21"
+        },
+        {
+          "type": "乘法",
+          "value": 1.1,
+          "condition": "否則"
+        }
+      ],
+      "flavour": "21 點時倍率 x1.5，其餘獲勝 x1.1。"
+    },
+    {
+      "id": "zhang_liao",
+      "name": "張遼",
+      "faction": "魏",
+      "rarity": "Rare",
+      "skill_name": "突襲",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "加法",
+          "value": 50,
+          "condition": "本回合要牌次數為 0"
+        },
+        {
+          "type": "加法",
+          "value": 25,
+          "condition": "本回合要牌次數為 1"
+        }
+      ],
+      "flavour": "0 次要牌 +50 傷害，1 次要牌 +25。"
+    },
+    {
+      "id": "huang_yue_ying",
+      "name": "黃月英",
+      "faction": "蜀",
+      "rarity": "Rare",
+      "skill_name": "機巧",
+      "skill_trigger": "達成 21 點時",
+      "skill_effects": [
+        {
+          "type": "乘法",
+          "value": 1.4,
+          "condition": "該次結算"
+        }
+      ],
+      "flavour": "達成 21 點時，倍率 x1.4。"
+    },
+    {
+      "id": "lu_bu",
+      "name": "呂布",
+      "faction": "群",
+      "rarity": "Rare",
+      "skill_name": "無雙",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "乘法",
+          "value": 1.45,
+          "condition": "玩家點數大於敵將且差 ≥ 5"
+        }
+      ],
+      "flavour": "贏點超過 5 點時，倍率 x1.45。"
+    },
+    {
+      "id": "cao_cao",
+      "name": "曹操",
+      "faction": "魏",
+      "rarity": "Legendary",
+      "skill_name": "奸雄",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "乘法",
+          "value": 1.35,
+          "condition": "敵將明牌為 10 或 J/Q/K（視為 10）"
+        },
+        {
+          "type": "加法",
+          "value": 40,
+          "condition": "本回合使用過錦囊"
+        }
+      ],
+      "flavour": "敵明牌為 10 時倍率 x1.35；使用錦囊 +40。"
+    },
+    {
+      "id": "zhu_ge_liang",
+      "name": "諸葛亮",
+      "faction": "蜀",
+      "rarity": "Legendary",
+      "skill_name": "觀星",
+      "skill_trigger": "回合開始時",
+      "skill_effects": [
+        {
+          "type": "乘法",
+          "value": 1.4,
+          "condition": "本回合曾觸發觀星且未爆牌，結算時"
+        }
+      ],
+      "flavour": "未爆牌時，倍率 x1.4。"
+    },
+    {
+      "id": "zhou_yu",
+      "name": "周瑜",
+      "faction": "吳",
+      "rarity": "Legendary",
+      "skill_name": "英姿",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "乘法",
+          "value": 1.35,
+          "condition": "本回合要牌次數 ≥ 2"
+        }
+      ],
+      "flavour": "要牌 ≥ 2 次時，倍率 x1.35。"
+    },
+    {
+      "id": "dong_zhuo",
+      "name": "董卓",
+      "faction": "群",
+      "rarity": "Legendary",
+      "skill_name": "暴虐",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "乘法",
+          "value": 1.35,
+          "condition": "敵將明牌為 A"
+        },
+        {
+          "type": "加法",
+          "value": 30,
+          "condition": "上一回合己方曾爆牌（風險回報）"
+        }
+      ],
+      "flavour": "敵明牌為 A 時倍率 x1.35；上場爆牌則 +30。"
+    },
+    {
+      "id": "guan_yu",
+      "name": "關羽",
+      "faction": "蜀",
+      "rarity": "Rare",
+      "skill_name": "武聖",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "乘法",
+          "value": 1.4,
+          "condition": "玩家點數為 20 或 21"
+        }
+      ],
+      "flavour": "點數達 20 或 21 時，倍率 x1.4。"
+    },
+    {
+      "id": "zhang_fei",
+      "name": "張飛",
+      "faction": "蜀",
+      "rarity": "Uncommon",
+      "skill_name": "咆哮",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "加法",
+          "value": 40,
+          "condition": "玩家點數大於敵將且差 ≥ 3"
+        }
+      ],
+      "flavour": "贏點超過 3 點時，+40 傷害。"
+    },
+    {
+      "id": "zhao_yun",
+      "name": "趙雲",
+      "faction": "蜀",
+      "rarity": "Rare",
+      "skill_name": "龍膽",
+      "skill_trigger": "達成 21 點時",
+      "skill_effects": [
+        {
+          "type": "乘法",
+          "value": 1.5,
+          "condition": "該次結算"
+        }
+      ],
+      "flavour": "達成 21 點時，倍率 x1.5。"
+    },
+    {
+      "id": "xu_chu",
+      "name": "許褚",
+      "faction": "魏",
+      "rarity": "Uncommon",
+      "skill_name": "裸衣",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "加法",
+          "value": 20,
+          "condition": null
+        }
+      ],
+      "bonus_discards": 1,
+      "flavour": "結算時 +20 傷害；+1 棄牌次數。"
+    },
+    {
+      "id": "dian_wei",
+      "name": "典韋",
+      "faction": "魏",
+      "rarity": "Uncommon",
+      "skill_name": "悍勇",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "加法",
+          "value": 15,
+          "condition": null
+        }
+      ],
+      "bonus_discards": 1,
+      "flavour": "結算時 +15 傷害；+1 棄牌次數。"
+    },
+    {
+      "id": "gan_ning",
+      "name": "甘寧",
+      "faction": "吳",
+      "rarity": "Uncommon",
+      "skill_name": "奇襲",
+      "skill_trigger": "要牌時",
+      "skill_effects": [
+        {
+          "type": "加法",
+          "value": 30,
+          "condition": "本回合第一次要牌後結算時生效"
+        }
+      ],
+      "flavour": "首次要牌後，結算 +30 傷害。"
+    },
+    {
+      "id": "tai_shi_ci",
+      "name": "太史慈",
+      "faction": "吳",
+      "rarity": "Rare",
+      "skill_name": "天義",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "乘法",
+          "value": 1.35,
+          "condition": "手牌中有 3 張以上同花色"
+        }
+      ],
+      "flavour": "手牌有 3 張同花色時，倍率 x1.35。"
+    },
+    {
+      "id": "diao_chan",
+      "name": "貂蟬",
+      "faction": "群",
+      "rarity": "Rare",
+      "skill_name": "離間",
+      "skill_trigger": "結算時",
+      "skill_effects": [
+        {
+          "type": "乘法",
+          "value": 1.25,
+          "condition": "敵將點數 ≥ 17"
+        }
+      ],
+      "bonus_discards": 1,
+      "flavour": "敵將點數 ≥ 17 時倍率 x1.25；+1 棄牌次數。"
+    }
+  ]
+}

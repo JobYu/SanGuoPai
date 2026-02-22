@@ -1,0 +1,115 @@
+{
+  "schema_version": "1.0",
+  "enemies": [
+    {
+      "id": "cheng_yuan_zhi",
+      "name": "程遠志",
+      "campaign": "黃巾之亂",
+      "stage_index": 1,
+      "morale": 100,
+      "ai_stand_threshold": 18,
+      "ai_tendency": "莽撞",
+      "flavour": "劉關張首戰，黃巾先鋒。"
+    },
+    {
+      "id": "deng_mao",
+      "name": "鄧茂",
+      "campaign": "黃巾之亂",
+      "stage_index": 2,
+      "morale": 220,
+      "ai_stand_threshold": 18,
+      "ai_tendency": "莽撞",
+      "flavour": "程遠志副將，同回被斬。"
+    },
+    {
+      "id": "gao_sheng",
+      "name": "高昇",
+      "campaign": "黃巾之亂",
+      "stage_index": 3,
+      "morale": 500,
+      "ai_stand_threshold": 17,
+      "ai_tendency": "穩健",
+      "flavour": "張寶部將。"
+    },
+    {
+      "id": "yan_zheng",
+      "name": "嚴政",
+      "campaign": "黃巾之亂",
+      "stage_index": 4,
+      "morale": 800,
+      "ai_stand_threshold": 17,
+      "ai_tendency": "穩健",
+      "flavour": "黃巾將領。"
+    },
+    {
+      "id": "zhang_liang",
+      "name": "張梁",
+      "campaign": "黃巾之亂",
+      "stage_index": 5,
+      "morale": 1500,
+      "ai_stand_threshold": 17,
+      "ai_tendency": "穩健",
+      "flavour": "地公將軍，黃巾要角。"
+    },
+    {
+      "id": "zhang_bao",
+      "name": "張寶",
+      "campaign": "黃巾之亂",
+      "stage_index": 6,
+      "morale": 2500,
+      "ai_stand_threshold": 17,
+      "ai_tendency": "穩健",
+      "flavour": "人公將軍。"
+    },
+    {
+      "id": "zhang_jiao",
+      "name": "張角",
+      "campaign": "黃巾之亂",
+      "stage_index": 7,
+      "morale": 3000,
+      "ai_stand_threshold": 16,
+      "ai_tendency": "狡詐",
+      "flavour": "天公將軍，黃巾線階段 Boss。"
+    },
+    {
+      "id": "hu_zhen",
+      "name": "胡軫",
+      "campaign": "討伐董卓",
+      "stage_index": 8,
+      "morale": 5000,
+      "ai_stand_threshold": 17,
+      "ai_tendency": "穩健",
+      "flavour": "董卓軍將領。"
+    },
+    {
+      "id": "hua_xiong",
+      "name": "華雄",
+      "campaign": "討伐董卓",
+      "stage_index": 9,
+      "morale": 6000,
+      "ai_stand_threshold": 16,
+      "ai_tendency": "狡詐",
+      "flavour": "溫酒斬華雄前之敵將。"
+    },
+    {
+      "id": "lu_bu",
+      "name": "呂布",
+      "campaign": "討伐董卓",
+      "stage_index": 10,
+      "morale": 9000,
+      "ai_stand_threshold": 16,
+      "ai_tendency": "狡詐",
+      "flavour": "虎牢關，階段尾關 Boss。"
+    },
+    {
+      "id": "dong_zhuo",
+      "name": "董卓",
+      "campaign": "討伐董卓",
+      "stage_index": 11,
+      "morale": 12000,
+      "ai_stand_threshold": 15,
+      "ai_tendency": "狡詐",
+      "flavour": "討伐董卓戰役關底 Boss。"
+    }
+  ]
+}
