@@ -1,0 +1,23 @@
+{
+    "schema_version": "1.0",
+    "relics": [
+        {
+            "id": "jade_seal",
+            "name": "傳國玉璽",
+            "type": "passive",
+            "effect_type": "additive_damage",
+            "value": 100,
+            "description": "天命所歸：每次結算時，額外造成 100 點傷害。",
+            "price": 2000
+        },
+        {
+            "id": "red_hare",
+            "name": "赤兔馬",
+            "type": "passive",
+            "effect_type": "start_discards",
+            "value": 1,
+            "description": "行千里：每次戰鬥開始時，額外獲得 1 次棄牌次數。",
+            "price": 1000
+        }
+    ]
+}

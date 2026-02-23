@@ -1,0 +1,19 @@
+{
+    "schema_version": "1.0",
+    "schemes": [
+        {
+            "id": "borrow_east_wind",
+            "name": "借東風",
+            "type": "active",
+            "description": "預知未來：偷看牌組頂端的第一張牌，但不抽取。",
+            "price": 300
+        },
+        {
+            "id": "empty_city",
+            "name": "空城計",
+            "type": "active",
+            "description": "震懾敵方：強制敵將在下一回合停止要牌（停牌）。",
+            "price": 500
+        }
+    ]
+}

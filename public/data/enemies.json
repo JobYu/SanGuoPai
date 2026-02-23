@@ -110,6 +110,46 @@
       "ai_stand_threshold": 15,
       "ai_tendency": "狡詐",
       "flavour": "討伐董卓戰役關底 Boss。"
+    },
+    {
+      "id": "placeholder_qunxiong",
+      "name": "隨機群雄",
+      "campaign": "群雄逐鹿",
+      "stage_index": 12,
+      "morale": 30000,
+      "ai_stand_threshold": 16,
+      "ai_tendency": "莽撞",
+      "flavour": "群雄逐鹿戰役預留位。"
+    },
+    {
+      "id": "placeholder_guandu",
+      "name": "袁紹部將",
+      "campaign": "官渡之戰",
+      "stage_index": 13,
+      "morale": 100000,
+      "ai_stand_threshold": 17,
+      "ai_tendency": "穩健",
+      "flavour": "官渡之戰戰役預留位。"
+    },
+    {
+      "id": "placeholder_chibi",
+      "name": "東吳水軍",
+      "campaign": "赤壁之戰",
+      "stage_index": 14,
+      "morale": 500000,
+      "ai_stand_threshold": 16,
+      "ai_tendency": "狡詐",
+      "flavour": "赤壁之戰戰役預留位。"
+    },
+    {
+      "id": "placeholder_beifa",
+      "name": "魏國守將",
+      "campaign": "三國鼎立/北伐",
+      "stage_index": 15,
+      "morale": 2000000,
+      "ai_stand_threshold": 15,
+      "ai_tendency": "狡詐",
+      "flavour": "終極挑戰戰役預留位。"
     }
   ]
 }

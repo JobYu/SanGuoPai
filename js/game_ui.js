@@ -8,7 +8,7 @@ class GameState {
     constructor() {
         this.currentScreen = 'LOADING';
         this.hands = 3;
-        this.discards = 1;
+        this.discards = 3;
         this.selectedGenerals = [];
         this.currentEnemy = null;
         this.enemyMorale = 0;
@@ -31,7 +31,10 @@ class GameState {
         this.maxSlots = 5;
         this.slotUpgradePrice = 500;
         this.leaderboard = this.getLeaderboard();
-        this.defeatedEnemies = []; // Track defeated enemy names
+        this.defeatedEnemies = [];
+        this.schemes = []; // Player's current schemes
+        this.maxSchemes = 3;
+        this.relics = []; // Passive items
     }
 
     getCharacterImage(id) {
@@ -46,8 +49,10 @@ class GameState {
 
         const generated = [
             'zhang_jiao', 'yu_jin', 'ma_dai', 'ding_feng', 'xia_hou_dun',
-            'guan_ping', 'sun_shang_xiang', 'lu_xun', 'zhang_liao',
-            'huang_yue_ying', 'lu_bu_boss', 'cao_cao', 'diao_chan', 'cheng_yuan_zhi', 'deng_mao', 'gao_sheng', 'yan_zheng'
+            'guan_ping', 'sun_shang_xiang', 'hua_xiong', 'lu_xun', 'zhang_liao',
+            'huang_yue_ying', 'lu_bu_boss', 'cao_cao', 'zhu_ge_liang', 'zhou_yu', 'dong_zhuo',
+            'guan_yu', 'zhang_fei', 'zhao_yun', 'xu_chu', 'dian_wei', 'gan_ning', 'tai_shi_ci',
+            'diao_chan', 'cheng_yuan_zhi', 'deng_mao', 'gao_sheng', 'yan_zheng'
         ];
 
         if (generated.includes(filename)) {
@@ -95,13 +100,22 @@ class GameState {
 
     startNewGame() {
         this.hands = 3;
-        this.discards = 1;
+        this.discards = 3;
         this.money = 0;
         this.selectedGenerals = [];
         this.maxSlots = 5;
         this.slotUpgradePrice = 500;
         this.leaderboard = this.getLeaderboard();
         this.defeatedEnemies = [];
+        this.schemes = [];
+        this.relics = [];
+        this.maxSchemes = 3;
+        this.bustLastRound = false;
+        this.bustThisRound = false;
+        this.xiahouDunBuffActive = false;
+        this.xiahouDunBuffPending = false;
+        this.drewAceThisRound = false;
+        this.schemesUsedThisRound = false;
         this.setScreen('START');
     }
 
@@ -162,16 +176,30 @@ class GameState {
         this.render();
     }
 
+    getFactionCounts() {
+        const counts = {};
+        this.selectedGenerals.forEach(g => {
+            if (g.faction) {
+                counts[g.faction] = (counts[g.faction] || 0) + 1;
+            }
+        });
+        return counts;
+    }
+
     startBattle(enemyIndex = 1) {
         this.currentEnemy = dataManager.getEnemyByStage(enemyIndex);
         this.enemyMorale = this.currentEnemy.morale;
         // Reset hands and discards for each battle
         this.hands = 3;
-        // Base discards = 1, plus bonus from generals
+        const fCounts = this.getFactionCounts();
+        const weiBonus = fCounts['魏'] >= 3 ? 1 : 0;
+        const redHareBonus = this.relics.find(r => r.id === 'red_hare') ? 1 : 0;
         const bonusDiscards = this.selectedGenerals.reduce((sum, g) => sum + (g.bonus_discards || 0), 0);
-        this.discards = 1 + bonusDiscards;
+        this.discards = 3 + bonusDiscards + weiBonus + redHareBonus;
         this.setScreen('BATTLE');
         this.newRound();
+        if (weiBonus) this.logs.push('【魏軍羈絆】額外獲得 1 次棄牌次數');
+        if (redHareBonus) this.logs.push('【赤兔馬】額外獲得 1 次棄牌次數');
     }
 
     newRound() {
@@ -182,6 +210,13 @@ class GameState {
         this.enemyHand.clear();
         this.selectedForDiscard.clear();
         this.hitsThisRound = 0;
+        this.drewAceThisRound = false;
+        this.schemesUsedThisRound = false;
+        this.enemyForceStand = false;
+        this.bustLastRound = this.bustThisRound || false;
+        this.bustThisRound = false;
+        this.xiahouDunBuffActive = this.xiahouDunBuffPending || false;
+        this.xiahouDunBuffPending = false;
 
         // Initial deal
         this.playerHand.addCard(this.deck.draw());
@@ -200,6 +235,7 @@ class GameState {
         const card = this.deck.draw();
         this.playerHand.addCard(card);
         this.hitsThisRound++;
+        if (card.rank === 'A') this.drewAceThisRound = true;
         this.logs.push(`你抽到了 ${card.toString()} (本回合要牌: ${this.hitsThisRound}/${this.hitLimit})`);
         this.render();
     }
@@ -248,20 +284,46 @@ class GameState {
         this.render();
     }
 
+    useScheme(index) {
+        if (this.turn !== 'PLAYER') return;
+        const schemeId = this.schemes[index]?.id;
+        if (!schemeId) return;
+
+        this.schemesUsedThisRound = true;
+        this.schemes.splice(index, 1);
+
+        if (schemeId === 'borrow_east_wind') {
+            if (this.deck.cards.length > 0) {
+                const peek = this.deck.cards[0];
+                this.logs.push(`【借東風】窺探天機：下一張牌是 ${peek.toString()}`);
+            }
+        } else if (schemeId === 'empty_city') {
+            this.enemyForceStand = true;
+            this.logs.push(`【空城計】發動成功！敵軍下一回合將不敢進軍（強制停牌）。`);
+        }
+
+        this.render();
+    }
+
     async resolveEnemyTurn() {
         this.logs.push('敵將回合...');
         this.render();
 
-        // Simple delay for "thinking"
-        while (AIEngine.shouldHit(this.currentEnemy, this.enemyHand, this.playerHand)) {
-            await new Promise(r => setTimeout(r, 800));
-            const card = this.deck.draw();
-            this.enemyHand.addCard(card);
-            this.logs.push(`敵將抽牌...`);
-            this.render();
-            if (this.enemyHand.isBust()) {
-                this.logs.push('敵將爆牌！');
-                break;
+        if (this.enemyForceStand) {
+            this.logs.push('敵軍受【空城計】影響，不敢妄動，強制停牌！');
+            await new Promise(r => setTimeout(r, 1000));
+        } else {
+            // Simple delay for "thinking"
+            while (AIEngine.shouldHit(this.currentEnemy, this.enemyHand, this.playerHand)) {
+                await new Promise(r => setTimeout(r, 800));
+                const card = this.deck.draw();
+                this.enemyHand.addCard(card);
+                this.logs.push(`敵將抽牌...`);
+                this.render();
+                if (this.enemyHand.isBust()) {
+                    this.logs.push('敵將爆牌！');
+                    break;
+                }
             }
         }
 
@@ -287,14 +349,15 @@ class GameState {
         this.selectedGenerals.forEach(g => {
             const isSettlement = g.skill_trigger === '結算時';
             const is21Trigger = g.skill_trigger === '達成 21 點時' && pPoints === 21;
+            const isXiahouDunBuff = g.skill_trigger === '爆牌時' && this.xiahouDunBuffActive;
 
-            if (isSettlement || is21Trigger) {
+            if (isSettlement || is21Trigger || isXiahouDunBuff) {
                 let effectApplied = false;
                 g.skill_effects.forEach(eff => {
                     let shouldApply = false;
                     const cond = eff.condition;
 
-                    if (!cond || cond === '該次結算' || cond === '無') {
+                    if (!cond || cond === '該次結算' || cond === '無' || cond === '無條件') {
                         shouldApply = true;
                     } else if (cond === '玩家點數恰為 21') {
                         if (pPoints === 21) shouldApply = true;
@@ -302,13 +365,13 @@ class GameState {
                         if (!effectApplied) shouldApply = true;
                     } else if (cond === '玩家點數 ≥ 15') {
                         if (pPoints >= 15) shouldApply = true;
-                    } else if (cond === '玩家點數 ≥ 17 且 ≤ 20') {
+                    } else if (cond === '玩家點數 ≥ 17 且 ≤ 20' || cond === '玩家點數為 17～20') {
                         if (pPoints >= 17 && pPoints <= 20) shouldApply = true;
                     } else if (cond === '敵將點數 ≥ 17') {
                         if (ePoints >= 17) shouldApply = true;
                     } else if (cond === '敵將點數 ≥ 18') {
                         if (ePoints >= 18) shouldApply = true;
-                    } else if (cond === '玩家要牌次數為 0') {
+                    } else if (cond === '玩家要牌次數為 0' || cond === '玩家未要牌即直接出牌（僅初始兩張）') {
                         if (this.hitsThisRound === 0) shouldApply = true;
                     } else if (cond === '玩家要牌次數為 1') {
                         if (this.hitsThisRound === 1) shouldApply = true;
@@ -320,6 +383,29 @@ class GameState {
                         if (this.playerHand.cards.length === 2) shouldApply = true;
                     } else if (cond === '玩家手牌數 ≥ 4 張') {
                         if (this.playerHand.cards.length >= 4) shouldApply = true;
+                    } else if (cond === '本回合要牌得到 A 則結算時額外加上') {
+                        if (this.drewAceThisRound) shouldApply = true;
+                    } else if (cond === '手牌中至少 2 張同花色') {
+                        const suits = this.playerHand.cards.map(c => c.suit);
+                        const counts = {};
+                        suits.forEach(s => counts[s] = (counts[s] || 0) + 1);
+                        if (Object.values(counts).some(c => c >= 2)) shouldApply = true;
+                    } else if (cond === '手牌中有 3 張以上同花色') {
+                        const suits = this.playerHand.cards.map(c => c.suit);
+                        const counts = {};
+                        suits.forEach(s => counts[s] = (counts[s] || 0) + 1);
+                        if (Object.values(counts).some(c => c >= 3)) shouldApply = true;
+                    } else if (cond === '敵將明牌為 A') {
+                        if (this.enemyHand.cards[0] && this.enemyHand.cards[0].rank === 'A') shouldApply = true;
+                    } else if (cond === '敵將明牌為 10 或 J/Q/K（視為 10）') {
+                        const rank = this.enemyHand.cards[0] ? this.enemyHand.cards[0].rank : null;
+                        if (['10', 'J', 'Q', 'K'].includes(rank)) shouldApply = true;
+                    } else if (cond === '上一回合己方曾爆牌（風險回報）') {
+                        if (this.bustLastRound) shouldApply = true;
+                    } else if (cond === '下一回合結算時生效（僅下一場）') {
+                        if (this.xiahouDunBuffActive) shouldApply = true;
+                    } else if (cond === '本回合使用過錦囊') {
+                        if (this.schemesUsedThisRound) shouldApply = true;
                     } else if (cond.includes('玩家點數大於敵將且差 ≥')) {
                         const diff = parseInt(cond.match(/\d+/)[0]);
                         if ((pPoints - ePoints) >= diff) shouldApply = true;
@@ -338,6 +424,20 @@ class GameState {
             }
         });
 
+        const fCounts = this.getFactionCounts();
+        if (fCounts['吳'] >= 3) {
+            const suits = this.playerHand.cards.map(c => c.suit);
+            const counts = {};
+            suits.forEach(s => counts[s] = (counts[s] || 0) + 1);
+            if (Object.values(counts).some(c => c >= 3)) {
+                multipliers.push({ name: '吳軍羈絆(三同花)', value: 1.1, type: '乘法' });
+            }
+        }
+        if (fCounts['群'] >= 3) {
+            const variance = Math.floor(Math.random() * 21) - 10;
+            additive.push({ name: '群雄羈絆', value: 50 + variance, type: '加法' });
+        }
+
         const damageResult = CombatEngine.calculateDamage(
             pPoints, ePoints, breakdown.isBlackjack,
             additive.map(a => a.value),
@@ -350,6 +450,11 @@ class GameState {
 
         if (pPoints > 21) {
             breakdown.result = 'BUST';
+            this.bustThisRound = true;
+            if (this.selectedGenerals.some(g => g.id === 'xia_hou_dun')) {
+                this.xiahouDunBuffPending = true;
+                this.logs.push('夏侯惇【剛烈】觸發！下一回合倍率提升。');
+            }
         } else if (ePoints > 21 || pPoints > ePoints || pPoints === 21) {
             breakdown.result = 'WIN';
             const multiplier = 10 + (21 - pPoints);
@@ -396,38 +501,75 @@ class GameState {
             this.rewardOptions.push(enemyAsGen);
         }
 
-        // Filter out undefeated enemy generals from the pool
         const enemyNames = dataManager.enemies.map(e => e.name);
-        const availablePool = all.filter(g =>
+        const availableGenerals = all.filter(g =>
             !this.selectedGenerals.find(sg => sg.id === g.id) &&
             !this.rewardOptions.find(ro => ro.id === g.id) &&
-            // If this general is also an enemy, only include if defeated
             (!enemyNames.includes(g.name) || this.defeatedEnemies.includes(g.name))
         );
 
-        while (this.rewardOptions.length < 3 && availablePool.length > 0) {
-            const randIdx = Math.floor(Math.random() * availablePool.length);
-            const rand = availablePool.splice(randIdx, 1)[0];
-            // Assign a price based on rarity
-            const priceMap = { 'Common': 100, 'Uncommon': 250, 'Rare': 600, 'Legendary': 1500 };
-            rand.price = priceMap[rand.rarity] || 200;
-            this.rewardOptions.push(rand);
+        const availableSchemes = dataManager.schemes.filter(s => !this.schemes.find(myS => myS.id === s.id) && !this.rewardOptions.find(ro => ro.id === s.id));
+        const availableRelics = dataManager.relics.filter(r => !this.relics.find(myR => myR.id === r.id) && !this.rewardOptions.find(ro => ro.id === r.id));
+        const availableItems = [...availableSchemes, ...availableRelics];
+        let addedItem = false;
+
+        while (this.rewardOptions.length < 3 && (availableGenerals.length > 0 || (!addedItem && availableItems.length > 0))) {
+            if (!addedItem && availableItems.length > 0 && Math.random() < 0.25) {
+                const randIdx = Math.floor(Math.random() * availableItems.length);
+                const item = availableItems.splice(randIdx, 1)[0];
+                this.rewardOptions.push(item);
+                addedItem = true;
+                continue;
+            }
+
+            if (availableGenerals.length > 0) {
+                const randIdx = Math.floor(Math.random() * availableGenerals.length);
+                const rand = availableGenerals.splice(randIdx, 1)[0];
+                const priceMap = { 'Common': 100, 'Uncommon': 250, 'Rare': 600, 'Legendary': 1500 };
+                rand.price = priceMap[rand.rarity] || 200;
+                this.rewardOptions.push(rand);
+            } else {
+                break;
+            }
         }
+
+        const fCounts = this.getFactionCounts();
+        this.rewardOptions.forEach(opt => {
+            if (opt.type === 'active' && fCounts['蜀'] >= 3) {
+                opt.price = Math.floor(opt.price * 0.8);
+                opt.description = `(蜀軍羈絆特價) ${opt.description}`;
+            }
+        });
+
         this.render();
     }
 
-    claimReward(general) {
-        if (this.money < general.price) {
-            alert(`金錢不足！需要 $${general.price}`);
+    claimReward(item) {
+        if (this.money < item.price) {
+            alert(`金錢不足！需要 $${item.price}`);
             return;
         }
 
-        if (this.selectedGenerals.length < this.maxSlots) {
-            this.money -= general.price;
-            this.selectedGenerals.push(general);
+        if (item.type === 'active' || item.type === 'passive') { // Scheme or Relic
+            if (item.type === 'active' && this.schemes.length >= this.maxSchemes) {
+                alert('錦囊位已滿！請先消耗錦囊。');
+                return;
+            }
+            this.money -= item.price;
+            if (item.type === 'active') {
+                this.schemes.push(item);
+                this.logs.push(`獲得錦囊：${item.name}`);
+            } else {
+                this.relics.push(item);
+                this.logs.push(`獲得寶物：${item.name}`);
+            }
         } else {
-            alert('武將位已滿！請先出售武將。');
-            return;
+            if (this.selectedGenerals.length >= this.maxSlots) {
+                alert('武將位已滿！請先出售武將。');
+                return;
+            }
+            this.money -= item.price;
+            this.selectedGenerals.push(item);
         }
 
         const nextStage = this.currentEnemy.stage_index + 1;
@@ -504,6 +646,14 @@ class GameState {
                             <h3>金錢 ($)</h3>
                             <div class="stat-val" style="color: var(--gold)">$${this.money}</div>
                         </div>
+                        ${this.relics && this.relics.length > 0 ? `
+                        <div class="stat-box" style="margin-top: 15px;">
+                            <h3>持有寶物</h3>
+                            <div style="font-size: 0.9rem; color: #a8dadc;">
+                                ${this.relics.map(r => `<div class="tooltip-trigger" style="cursor:help; margin-top:5px;">[${r.name}]<div class="tooltip">${r.description}</div></div>`).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
                     </div>
                     ` : ''}
                     <div id="center-battle" ${this.currentScreen === 'START' ? 'style="width: 100%;"' : ''}>
@@ -606,6 +756,15 @@ class GameState {
                              style="background: #4da6ff">
                         棄牌 (Discard) ${this.discards}
                     </button>
+                    ${this.schemes.length > 0 ? `
+                        <div class="schemes-tray" style="display:flex; gap: 5px; margin-left:10px;">
+                            ${this.schemes.map((s, idx) => `
+                                <button onclick="game.useScheme(${idx})" style="background:var(--accent-red); padding:5px 10px; font-size:0.8rem; border-radius:4px;">
+                                    錦囊:${s.name}
+                                </button>
+                            `).join('')}
+                        </div>
+                    ` : ''}
                     <div onclick="game.toggleDeckView()" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 5px 15px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; margin-left: 10px;">
                         <span style="font-size: 0.8rem; color: #888;">牌組</span>
                         <strong style="font-size: 1.2rem; color: var(--gold-bright);">${this.deck.cards.length}</strong>
@@ -858,8 +1017,8 @@ class GameState {
                         ${this.rewardOptions.map(g => `
                             <div class="reward-card ${this.money < (g.price || 0) ? 'cannot-afford' : ''}" onclick="game.claimRewardById('${g.id}')">
                                 <h3>${g.name}</h3>
-                                <p style="font-size: 0.8rem; color: #aaa;">${g.rarity}</p>
-                                <p style="margin: 10px 0; font-size: 0.9rem; color: var(--gold);">${g.flavour}</p>
+                                <div style="font-size: 0.8rem; color: #aaa;">${g.type === 'active' ? '【錦囊】' : (g.type === 'passive' ? '【寶物】' : g.rarity + ' | ' + g.faction + '軍')}</div>
+                                <p style="margin: 10px 0; font-size: 0.9rem; color: var(--gold);">${g.type ? g.description : g.flavour}</p>
                                 <div class="price-tag">$${g.price}</div>
                             </div>
                         `).join('')}
@@ -894,7 +1053,7 @@ class GameState {
 // Global instance for simple HTML onclicks for the prototype
 const game = new GameState();
 window.game = game;
-game.claimRewardById = (id) => game.claimReward(dataManager.getGeneralById(id));
+game.claimRewardById = (id) => game.claimReward(dataManager.getGeneralById(id) || dataManager.getSchemeById(id) || dataManager.getRelicById(id));
 
 window.addEventListener('DOMContentLoaded', () => {
     game.init();
