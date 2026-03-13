@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>三國派 (SanGuoPai) -Roguelike 21點博弈冒險</title>
-    <meta name="description" content="三國派是一款結合三國題材與 Roguelike 元素的 21 點博弈策略遊戲。招募武將、平定亂世！">
+    <title>SanGuoPai - Roguelike Blackjack Adventure</title>
+    <meta name="description" content="SanGuoPai is a Three Kingdoms roguelike strategy game built around blackjack combat. Recruit generals and pacify the realm.">
     <link rel="stylesheet" href="style.css">
+    <script type="module">
+        import { applyDocumentLocalization, getInitialLocale } from './js/i18n.js';
+
+        applyDocumentLocalization(getInitialLocale());
+    </script>
 </head>
 
 <body>
     <div id="game-wrapper">
         <div id="game-container">
             <div id="screen-mount">
-                <div id="loading-screen">載入中...</div>
+                <div id="loading-screen">Loading...</div>
             </div>
         </div>
     </div>

@@ -3,6 +3,7 @@ import dataManager from './data_manager.js';
 import { Deck, Hand, SUITS, RANKS } from './engine/blackjack.js';
 import AIEngine from './engine/ai.js';
 import CombatEngine from './engine/combat.js';
+import { applyDocumentLocalization, createTranslator, getInitialLocale, saveLocalePreference, translateDataLabel } from './i18n.js';
 
 class GameState {
     constructor() {
@@ -35,6 +36,8 @@ class GameState {
         this.schemes = []; // Player's current schemes
         this.maxSchemes = 3;
         this.relics = []; // Passive items
+        this.locale = getInitialLocale();
+        this.t = createTranslator(this.locale);
     }
 
     getCharacterImage(id) {
@@ -59,6 +62,54 @@ class GameState {
             return `${basePath}${filename}${suffix}`;
         }
         return null;
+    }
+
+    translate(key, vars = {}) {
+        return this.t(key, vars);
+    }
+
+    translateData(category, value) {
+        return translateDataLabel(this.locale, category, value);
+    }
+
+    setLocale(locale) {
+        this.locale = locale;
+        this.t = createTranslator(locale);
+        saveLocalePreference(globalThis.localStorage, locale);
+        applyDocumentLocalization(locale);
+        this.render();
+    }
+
+    getFactionLabel(faction) {
+        const translated = this.translateData('factions', faction);
+        return this.locale === 'en' ? translated : `${translated}軍`;
+    }
+
+    getRarityLabel(rarity) {
+        return this.translateData('rarities', rarity);
+    }
+
+    getEnemyTendencyLabel(tendency) {
+        return this.translateData('enemyTendencies', tendency);
+    }
+
+    getSkillTriggerLabel(trigger) {
+        return this.translateData('skillTriggers', trigger);
+    }
+
+    getSkillConditionLabel(condition) {
+        if (!condition) return this.translate('ui.noCondition');
+        return this.translateData('conditions', condition);
+    }
+
+    getEffectTypeLabel(type) {
+        return this.translateData('effectTypes', type);
+    }
+
+    formatRewardCategory(item) {
+        if (item.type === 'active') return this.translate('ui.schemeTag');
+        if (item.type === 'passive') return this.translate('ui.relicTag');
+        return `${this.getRarityLabel(item.rarity)} | ${this.getFactionLabel(item.faction)}`;
     }
 
     showEnemyDetail() {
@@ -89,12 +140,13 @@ class GameState {
 
     async init() {
         try {
+            applyDocumentLocalization(this.locale);
             await dataManager.loadAllData();
             this.startNewGame();
         } catch (e) {
             console.error(e);
             const mount = document.getElementById('screen-mount');
-            if (mount) mount.innerHTML = `<div style="color:red">載入失敗: ${e.message}</div>`;
+            if (mount) mount.innerHTML = `<div style="color:red">${this.translate('alert.loadFailed', { message: e.message })}</div>`;
         }
     }
 
@@ -159,20 +211,20 @@ class GameState {
 
         this.money += sellPrice;
         this.selectedGenerals.splice(index, 1);
-        this.logs.push(`出售了 ${gen.name}，獲得了 $${sellPrice}`);
+        this.logs.push(this.translate('log.soldGeneral', { name: gen.name, amount: sellPrice }));
         this.render();
     }
 
     buySlot() {
         if (this.money < this.slotUpgradePrice) {
-            alert(`金錢不足！需要 $${this.slotUpgradePrice}`);
+            alert(this.translate('alert.insufficientMoney', { amount: this.slotUpgradePrice }));
             return;
         }
 
         this.money -= this.slotUpgradePrice;
         this.maxSlots++;
         this.slotUpgradePrice = Math.floor(this.slotUpgradePrice * 1.5); // Price increases
-        this.logs.push(`武將位擴張！目前上限: ${this.maxSlots}`);
+        this.logs.push(this.translate('log.boughtSlot', { slots: this.maxSlots }));
         this.render();
     }
 
@@ -198,8 +250,8 @@ class GameState {
         this.discards = 3 + bonusDiscards + weiBonus + redHareBonus;
         this.setScreen('BATTLE');
         this.newRound();
-        if (weiBonus) this.logs.push('【魏軍羈絆】額外獲得 1 次棄牌次數');
-        if (redHareBonus) this.logs.push('【赤兔馬】額外獲得 1 次棄牌次數');
+        if (weiBonus) this.logs.push(this.translate('log.weiBond'));
+        if (redHareBonus) this.logs.push(this.translate('log.redHare'));
     }
 
     newRound() {
@@ -225,7 +277,7 @@ class GameState {
         this.enemyHand.addCard(this.deck.draw()); // Hidden
 
         this.turn = 'PLAYER';
-        this.logs = ['戰鬥開始！每回合最多要牌 3 次。'];
+        this.logs = [this.translate('log.battleStart')];
         this.render();
     }
 
@@ -236,7 +288,7 @@ class GameState {
         this.playerHand.addCard(card);
         this.hitsThisRound++;
         if (card.rank === 'A') this.drewAceThisRound = true;
-        this.logs.push(`你抽到了 ${card.toString()} (本回合要牌: ${this.hitsThisRound}/${this.hitLimit})`);
+        this.logs.push(this.translate('log.drewCard', { card: card.toString(), current: this.hitsThisRound, limit: this.hitLimit }));
         this.render();
     }
 
@@ -247,7 +299,7 @@ class GameState {
 
         // Play Hand (出牌) now performs the bust check
         if (this.playerHand.isBust()) {
-            this.logs.push('爆牌了！');
+            this.logs.push(this.translate('log.bust'));
             this.resolveTurn();
         } else {
             this.turn = 'ENEMY';
@@ -275,7 +327,7 @@ class GameState {
 
         this.discards--;
         this.selectedForDiscard.clear();
-        this.logs.push(`棄牌完成，剩餘棄牌次數: ${this.discards}`);
+        this.logs.push(this.translate('log.discardDone', { discards: this.discards }));
         this.render();
     }
 
@@ -295,22 +347,22 @@ class GameState {
         if (schemeId === 'borrow_east_wind') {
             if (this.deck.cards.length > 0) {
                 const peek = this.deck.cards[0];
-                this.logs.push(`【借東風】窺探天機：下一張牌是 ${peek.toString()}`);
+                this.logs.push(this.translate('log.borrowEastWind', { card: peek.toString() }));
             }
         } else if (schemeId === 'empty_city') {
             this.enemyForceStand = true;
-            this.logs.push(`【空城計】發動成功！敵軍下一回合將不敢進軍（強制停牌）。`);
+            this.logs.push(this.translate('log.emptyCityCast'));
         }
 
         this.render();
     }
 
     async resolveEnemyTurn() {
-        this.logs.push('敵將回合...');
+        this.logs.push(this.translate('log.enemyTurn'));
         this.render();
 
         if (this.enemyForceStand) {
-            this.logs.push('敵軍受【空城計】影響，不敢妄動，強制停牌！');
+            this.logs.push(this.translate('log.emptyCityEnemy'));
             await new Promise(r => setTimeout(r, 1000));
         } else {
             // Simple delay for "thinking"
@@ -318,10 +370,10 @@ class GameState {
                 await new Promise(r => setTimeout(r, 800));
                 const card = this.deck.draw();
                 this.enemyHand.addCard(card);
-                this.logs.push(`敵將抽牌...`);
+                this.logs.push(this.translate('log.enemyHit'));
                 this.render();
                 if (this.enemyHand.isBust()) {
-                    this.logs.push('敵將爆牌！');
+                    this.logs.push(this.translate('log.enemyBust'));
                     break;
                 }
             }
@@ -453,7 +505,7 @@ class GameState {
             this.bustThisRound = true;
             if (this.selectedGenerals.some(g => g.id === 'xia_hou_dun')) {
                 this.xiahouDunBuffPending = true;
-                this.logs.push('夏侯惇【剛烈】觸發！下一回合倍率提升。');
+                this.logs.push(this.translate('log.xiahouDun'));
             }
         } else if (ePoints > 21 || pPoints > ePoints || pPoints === 21) {
             breakdown.result = 'WIN';
@@ -465,7 +517,7 @@ class GameState {
 
             // Grant money equal to damage
             this.money += damageResult;
-            this.logs.push(`獲勝！獲得了 $${damageResult}`);
+            this.logs.push(this.translate('log.moneyAwarded', { amount: damageResult }));
         } else if (pPoints < ePoints) {
             breakdown.result = 'LOSE';
         }
@@ -537,7 +589,7 @@ class GameState {
         this.rewardOptions.forEach(opt => {
             if (opt.type === 'active' && fCounts['蜀'] >= 3) {
                 opt.price = Math.floor(opt.price * 0.8);
-                opt.description = `(蜀軍羈絆特價) ${opt.description}`;
+                opt.description = this.translate('log.shuDiscount', { description: opt.description });
             }
         });
 
@@ -546,26 +598,26 @@ class GameState {
 
     claimReward(item) {
         if (this.money < item.price) {
-            alert(`金錢不足！需要 $${item.price}`);
+            alert(this.translate('alert.insufficientMoney', { amount: item.price }));
             return;
         }
 
         if (item.type === 'active' || item.type === 'passive') { // Scheme or Relic
             if (item.type === 'active' && this.schemes.length >= this.maxSchemes) {
-                alert('錦囊位已滿！請先消耗錦囊。');
+                alert(this.translate('alert.schemesFull'));
                 return;
             }
             this.money -= item.price;
             if (item.type === 'active') {
                 this.schemes.push(item);
-                this.logs.push(`獲得錦囊：${item.name}`);
+                this.logs.push(this.translate('log.gotScheme', { name: item.name }));
             } else {
                 this.relics.push(item);
-                this.logs.push(`獲得寶物：${item.name}`);
+                this.logs.push(this.translate('log.gotRelic', { name: item.name }));
             }
         } else {
             if (this.selectedGenerals.length >= this.maxSlots) {
-                alert('武將位已滿！請先出售武將。');
+                alert(this.translate('alert.slotsFull'));
                 return;
             }
             this.money -= item.price;
@@ -577,9 +629,9 @@ class GameState {
         if (nextEnemy) {
             this.startBattle(nextStage);
         } else {
-            this.logs.push('恭喜！你已平定亂世，統一三國！');
+            this.logs.push(this.translate('log.gameCleared'));
             this.saveScore(this.money);
-            alert(`恭喜通關！你的終局積分（金錢）: $${this.money}`);
+            alert(this.translate('alert.gameClear', { money: this.money }));
             this.startNewGame();
         }
     }
@@ -608,9 +660,9 @@ class GameState {
             return `
                             <div class="gen-mini tooltip-trigger" style="padding: 0; overflow: hidden; cursor: pointer;" onclick="game.showGeneralDetail(${i})">
                                 ${img ? `<img src="${img}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; z-index: 1;">` : `<span style="position: relative; z-index: 2; background: rgba(0,0,0,0.5); padding: 2px 5px; border-radius: 4px;">${g.name}</span>`}
-                                <button class="sell-btn" style="z-index: 3;" onclick="game.sellGeneral(${i}); event.stopPropagation();">售</button>
+                                <button class="sell-btn" style="z-index: 3;" onclick="game.sellGeneral(${i}); event.stopPropagation();">${this.translate('ui.sellShort')}</button>
                                 <div class="tooltip">
-                                    <strong>${g.name} [${g.rarity}]</strong>
+                                    <strong>${g.name} [${this.getRarityLabel(g.rarity)}]</strong>
                                     ${g.flavour}
                                 </div>
                             </div>
@@ -622,9 +674,9 @@ class GameState {
                                   onclick="game.showEnemyDetail()">
                                  ${this.getCharacterImage(this.currentEnemy.id) ? `<img src="${this.getCharacterImage(this.currentEnemy.id)}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; z-index: 1;">` : `<span style="position: relative; z-index: 2; background: rgba(0,0,0,0.5); padding: 2px 5px; border-radius: 4px; color: #ff4d4d;">${this.currentEnemy.name}</span>`}
                                  <div class="tooltip">
-                                     <strong style="color: #ff4d4d;">${this.currentEnemy.name} [敵將]</strong>
+                                     <strong style="color: #ff4d4d;">${this.currentEnemy.name} [${this.translate('ui.enemyLabel')}]</strong>
                                      ${this.currentEnemy.flavour}
-                                     <div style="margin-top: 5px; color: #aaa; font-size: 0.8rem;">點擊查看詳情</div>
+                                     <div style="margin-top: 5px; color: #aaa; font-size: 0.8rem;">${this.translate('ui.clickForDetails')}</div>
                                  </div>
                              </div>
                          ` : ''}
@@ -636,19 +688,19 @@ class GameState {
                      <div id="left-bar">
                          ${this.currentEnemy ? `
                          <div class="stat-box enemy-stat" style="margin-bottom: 15px;">
-                            <div style="font-size: 0.8rem; color: #888; margin-bottom: 5px;">第 ${this.currentEnemy.stage_index} 場對決</div>
-                            <h3 style="font-size: 1rem; color: var(--gold-bright);">目標：${this.currentEnemy.name}</h3>
+                            <div style="font-size: 0.8rem; color: #888; margin-bottom: 5px;">${this.translate('ui.stageBattle', { stage: this.currentEnemy.stage_index })}</div>
+                            <h3 style="font-size: 1rem; color: var(--gold-bright);">${this.translate('ui.target', { name: this.currentEnemy.name })}</h3>
                             <progress value="${this.currentEnemy.morale - Math.max(0, this.enemyMorale)}" max="${this.currentEnemy.morale}" class="side-progress"></progress>
                             <div class="score-display" style="font-size: 0.9rem; margin-top: 5px; color: var(--gold-bright);">${Math.max(0, this.currentEnemy.morale - Math.max(0, this.enemyMorale))} / ${this.currentEnemy.morale}</div>
                         </div>
                         ` : ''}
                         <div class="stat-box">
-                            <h3>金錢 ($)</h3>
+                            <h3>${this.translate('ui.money')}</h3>
                             <div class="stat-val" style="color: var(--gold)">$${this.money}</div>
                         </div>
                         ${this.relics && this.relics.length > 0 ? `
                         <div class="stat-box" style="margin-top: 15px;">
-                            <h3>持有寶物</h3>
+                            <h3>${this.translate('ui.relicsOwned')}</h3>
                             <div style="font-size: 0.9rem; color: #a8dadc;">
                                 ${this.relics.map(r => `<div class="tooltip-trigger" style="cursor:help; margin-top:5px;">[${r.name}]<div class="tooltip">${r.description}</div></div>`).join('')}
                             </div>
@@ -674,25 +726,36 @@ class GameState {
     renderTitleHTML() {
         return `
             <div class="title-screen">
+                <div style="display: flex; justify-content: center; margin-bottom: 24px;">
+                    <label style="display: flex; flex-direction: column; gap: 8px; color: #aaa; font-size: 0.9rem; align-items: flex-start;">
+                        <span>${this.translate('ui.language')}</span>
+                        <select onchange="game.setLocale(this.value)" style="min-width: 220px; padding: 10px 12px; border-radius: 8px; background: rgba(20,20,20,0.85); color: #eee; border: 1px solid rgba(212,175,55,0.35);">
+                            <option value="zh-TW" ${this.locale === 'zh-TW' ? 'selected' : ''}>${this.translate('ui.languageOptionZhTW')}</option>
+                            <option value="zh-CN" ${this.locale === 'zh-CN' ? 'selected' : ''}>${this.translate('ui.languageOptionZhCN')}</option>
+                            <option value="en" ${this.locale === 'en' ? 'selected' : ''}>${this.translate('ui.languageOptionEn')}</option>
+                        </select>
+                        <span style="font-size: 0.8rem; color: #666;">${this.translate('ui.languageAutoHint')}</span>
+                    </label>
+                </div>
                 <h1 style="font-size: 4rem; color: var(--gold); margin-bottom: 20px;">三國派</h1>
                 <p style="font-size: 1.2rem; color: #aaa; margin-bottom: 40px; font-style: italic;">
-                    Roguelike 21點博弈冒險
+                    ${this.translate('ui.subtitle')}
                 </p>
                 <div class="title-actions" style="display: flex; gap: 20px; justify-content: center;">
                     <button onclick="game.startNewGame(); game.startBattle(1)" style="font-size: 1.5rem; padding: 15px 60px; background: var(--accent-red);">
-                        開始遊戲
+                        ${this.translate('ui.startGame')}
                     </button>
                 </div>
 
                 ${this.leaderboard.length > 0 ? `
                     <div class="leaderboard-area" style="margin-top: 40px; width: 80%; max-width: 600px;">
-                        <h2 style="color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 5px;">英雄榜 (Top 10)</h2>
+                        <h2 style="color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 5px;">${this.translate('ui.leaderboard')}</h2>
                         <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem;">
                             <thead>
                                 <tr style="color: #888; text-align: left;">
-                                    <th style="padding: 5px;">日期</th>
-                                    <th style="padding: 5px;">積分</th>
-                                    <th style="padding: 5px;">武將陣容</th>
+                                    <th style="padding: 5px;">${this.translate('ui.date')}</th>
+                                    <th style="padding: 5px;">${this.translate('ui.score')}</th>
+                                    <th style="padding: 5px;">${this.translate('ui.lineup')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -709,7 +772,7 @@ class GameState {
                 ` : ''}
 
                 <div class="title-hint" style="margin-top: 60px; color: #666; font-size: 0.9rem;">
-                    提示：點擊手牌可以選擇棄牌，出牌時才會計算爆牌。
+                    ${this.translate('ui.titleHint')}
                 </div>
             </div>
         `;
@@ -743,30 +806,30 @@ class GameState {
 
                 <div class="action-row">
                     <div class="point-bubble" style="${this.playerHand.isBust() ? 'color: #ff4d4d; border: 2px solid #ff4d4d;' : ''}">
-                        點數: ${this.playerHand.getPoints()}
+                        ${this.translate('ui.pointsUnit', { value: this.playerHand.getPoints() })}
                     </div>
                     <button onclick="game.playerHit()" ${this.turn !== 'PLAYER' || this.hitsThisRound >= this.hitLimit ? 'disabled' : ''}>
-                        要牌 (Hit) ${this.hitsThisRound}/${this.hitLimit}
+                        ${this.translate('ui.hit', { current: this.hitsThisRound, limit: this.hitLimit })}
                     </button>
                     <button onclick="game.playerPlayHand()" ${this.turn !== 'PLAYER' ? 'disabled' : ''} style="background: var(--gold); color: #000;">
-                        出牌 (Play Hand) ${this.hands}
+                        ${this.translate('ui.playHand', { hands: this.hands })}
                     </button>
                     <button onclick="game.playerDiscard()" 
                             ${this.turn !== 'PLAYER' || this.discards <= 0 || this.selectedForDiscard.size === 0 ? 'disabled' : ''}
                              style="background: #4da6ff">
-                        棄牌 (Discard) ${this.discards}
+                        ${this.translate('ui.discard', { discards: this.discards })}
                     </button>
                     ${this.schemes.length > 0 ? `
                         <div class="schemes-tray" style="display:flex; gap: 5px; margin-left:10px;">
                             ${this.schemes.map((s, idx) => `
                                 <button onclick="game.useScheme(${idx})" style="background:var(--accent-red); padding:5px 10px; font-size:0.8rem; border-radius:4px;">
-                                    錦囊:${s.name}
+                                    ${this.translate('ui.schemeButton', { name: s.name })}
                                 </button>
                             `).join('')}
                         </div>
                     ` : ''}
                     <div onclick="game.toggleDeckView()" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 5px 15px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; margin-left: 10px;">
-                        <span style="font-size: 0.8rem; color: #888;">牌組</span>
+                        <span style="font-size: 0.8rem; color: #888;">${this.translate('ui.deck')}</span>
                         <strong style="font-size: 1.2rem; color: var(--gold-bright);">${this.deck.cards.length}</strong>
                     </div>
                 </div>
@@ -798,22 +861,22 @@ class GameState {
                         </div>` : ''}
                         <div>
                             <h2 style="color: var(--gold-bright); margin-bottom: 5px;">${general.name}</h2>
-                            <div style="color: var(--gold); font-size: 0.9rem; margin-bottom: 15px;">${general.rarity} | ${general.faction}軍</div>
+                            <div style="color: var(--gold); font-size: 0.9rem; margin-bottom: 15px;">${this.getRarityLabel(general.rarity)} | ${this.getFactionLabel(general.faction)}</div>
                             
                             <div style="margin-bottom: 20px; line-height: 1.6; font-style: italic; color: #aaa; border-left: 3px solid var(--gold); padding-left: 15px;">
                                 "${general.flavour}"
                             </div>
                             
                             <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
-                                <div style="margin-bottom: 10px; font-weight: bold; color: var(--gold-bright);">技能：${general.skill_name}</div>
-                                <div style="color: #eee; font-size: 0.9rem;">觸發：${general.skill_trigger}</div>
+                                <div style="margin-bottom: 10px; font-weight: bold; color: var(--gold-bright);">${this.translate('ui.skill', { name: general.skill_name })}</div>
+                                <div style="color: #eee; font-size: 0.9rem;">${this.translate('ui.trigger', { value: this.getSkillTriggerLabel(general.skill_trigger) })}</div>
                                 <div style="color: #ccc; font-size: 0.85rem; margin-top: 5px;">
-                                    ${general.skill_effects.map(e => `● ${e.condition || '無條件'}：${e.type}${e.value}`).join('<br>')}
+                                    ${general.skill_effects.map(e => `● ${this.getSkillConditionLabel(e.condition)}: ${this.getEffectTypeLabel(e.type)} ${e.value}`).join('<br>')}
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <button onclick="game.closeGeneralDetail()" style="margin-top: 30px; width: 100%;">返回戰場</button>
+                    <button onclick="game.closeGeneralDetail()" style="margin-top: 30px; width: 100%;">${this.translate('ui.backToBattle')}</button>
                 </div>
             </div>
         `;
@@ -832,7 +895,7 @@ class GameState {
                         </div>` : ''}
                         <div>
                             <h2 style="color: var(--gold-bright); margin-bottom: 5px;">${enemy.name}</h2>
-                            <div style="color: #ff4d4d; font-size: 0.9rem; margin-bottom: 15px;">敵軍大將</div>
+                            <div style="color: #ff4d4d; font-size: 0.9rem; margin-bottom: 15px;">${this.translate('ui.enemyCommander')}</div>
                             
                             <div style="margin-bottom: 20px; line-height: 1.6; font-style: italic; color: #aaa; border-left: 3px solid #444; padding-left: 15px;">
                                 "${enemy.flavour}"
@@ -840,21 +903,21 @@ class GameState {
                             
                             <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
                                 <div style="margin-bottom: 10px; display: flex; justify-content: space-between;">
-                                    <span style="color: #888;">AI 性格：</span>
-                                    <span style="color: #eee;">${enemy.ai_tendency}</span>
+                                    <span style="color: #888;">${this.translate('ui.aiTendency')}</span>
+                                    <span style="color: #eee;">${this.getEnemyTendencyLabel(enemy.ai_tendency)}</span>
                                 </div>
                                 <div style="margin-bottom: 10px; display: flex; justify-content: space-between;">
-                                    <span style="color: #888;">停牌閾值：</span>
-                                    <span style="color: #eee;">${enemy.ai_stand_threshold} 點</span>
+                                    <span style="color: #888;">${this.translate('ui.standThreshold')}</span>
+                                    <span style="color: #eee;">${this.translate('ui.pointsUnit', { value: enemy.ai_stand_threshold })}</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: #888;">初始士氣：</span>
+                                    <span style="color: #888;">${this.translate('ui.initialMorale')}</span>
                                     <span style="color: #eee;">${enemy.morale}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <button onclick="game.closeEnemyDetail()" style="margin-top: 30px; width: 100%;">返回戰場</button>
+                    <button onclick="game.closeEnemyDetail()" style="margin-top: 30px; width: 100%;">${this.translate('ui.backToBattle')}</button>
                 </div>
             </div>
         `;
@@ -866,7 +929,7 @@ class GameState {
         return `
             <div class="overlay" onclick="game.toggleDeckView()">
                 <div class="modal deck-modal" onclick="event.stopPropagation()" style="max-width: 850px; min-width: 800px;">
-                    <h2 style="margin-bottom: 20px;">剩餘牌組狀態 (${this.deck.cards.length} / 52)</h2>
+                    <h2 style="margin-bottom: 20px;">${this.translate('ui.remainingDeck', { current: this.deck.cards.length })}</h2>
                     <div class="deck-display">
                         ${SUITS.map(suit => `
                             <div class="deck-row">
@@ -884,10 +947,10 @@ class GameState {
                         `).join('')}
                     </div>
                     <div style="margin-top: 30px; font-size: 0.9rem; color: #666; display: flex; justify-content: center; gap: 20px;">
-                        <span>● 正常顯示：牌組中剩餘的牌</span>
-                        <span>● 灰色透明：遊戲中已出現或領取的牌</span>
+                        <span>${this.translate('ui.deckLegendAvailable')}</span>
+                        <span>${this.translate('ui.deckLegendPlayed')}</span>
                     </div>
-                    <button onclick="game.toggleDeckView()" style="margin-top: 30px;">關閉回歸戰場</button>
+                    <button onclick="game.toggleDeckView()" style="margin-top: 30px;">${this.translate('ui.closeDeck')}</button>
                 </div>
             </div>
         `;
@@ -898,7 +961,7 @@ class GameState {
 
         const playerHandHTML = `
             <div class="settlement-hand">
-                <span>你的手牌:</span>
+                <span>${this.translate('ui.yourHand')}</span>
                 <div class="hand-row mini">
                     ${this.playerHand.cards.map(c => `<div class="playing-card mini">${c.toString()}</div>`).join('')}
                 </div>
@@ -907,7 +970,7 @@ class GameState {
 
         const enemyHandHTML = `
             <div class="settlement-hand">
-                <span>敵將手牌:</span>
+                <span>${this.translate('ui.enemyHand')}</span>
                 <div class="hand-row mini">
                     ${this.enemyHand.cards.map(c => `<div class="playing-card mini">${c.toString()}</div>`).join('')}
                 </div>
@@ -916,9 +979,9 @@ class GameState {
 
         const pointsHTML = `
             <div class="calc-row" style="display: flex; gap: 30px; justify-content: center; align-items: center; margin: 15px 0; font-size: 1.2rem;">
-                <div>玩家: <strong style="color: var(--gold-bright); font-size: 1.8rem;">${b.pPoints}</strong> ${b.pPoints > 21 ? '<span style="color: #ff4d4d">(爆)</span>' : ''}</div>
+                <div>${this.translate('ui.playerLabel')}: <strong style="color: var(--gold-bright); font-size: 1.8rem;">${b.pPoints}</strong> ${b.pPoints > 21 ? `<span style="color: #ff4d4d">${this.translate('ui.bustMark')}</span>` : ''}</div>
                 <div style="font-size: 1.5rem; color: #666; font-weight: bold;">VS</div>
-                <div>敵將: <strong style="color: #ff4d4d; font-size: 1.8rem;">${b.ePoints}</strong> ${b.ePoints > 21 ? '<span style="color: #ff4d4d">(爆)</span>' : ''}</div>
+                <div>${this.translate('ui.enemyLabel')}: <strong style="color: #ff4d4d; font-size: 1.8rem;">${b.ePoints}</strong> ${b.ePoints > 21 ? `<span style="color: #ff4d4d">${this.translate('ui.bustMark')}</span>` : ''}</div>
             </div>
         `;
 
@@ -928,53 +991,53 @@ class GameState {
         if (b.result === 'WIN') {
             const currentMultiplier = 10 + (21 - b.pPoints);
             const baseValue = b.pPoints * currentMultiplier;
-            const calcStr = `基礎獎勵 (${b.pPoints} 點 x ${currentMultiplier} 倍) + 手牌點數 (${b.pPoints})`;
-            resultTitle = `<h2 class="win">${b.isBlackjack ? '完美 Blackjack' : '博弈獲勝！'}</h2>`;
+            const calcStr = this.translate('ui.baseRewardFormula', { points: b.pPoints, multiplier: currentMultiplier });
+            resultTitle = `<h2 class="win">${b.isBlackjack ? this.translate('ui.blackjackTitle') : this.translate('ui.winTitle')}</h2>`;
             resultBody = `
                 <div class="breakdown">
                     ${pointsHTML}
                     <div class="calc-formula" style="color: var(--gold-bright); font-size: 1.1rem; border: 1px dashed rgba(212,175,55,0.3); padding: 10px; border-radius: 8px;">
-                        <div style="font-size: 0.9rem; color: #888; margin-bottom: 5px;">* 勝利點數越小，獎勵倍數越高</div>
+                        <div style="font-size: 0.9rem; color: #888; margin-bottom: 5px;">${this.translate('ui.lowerWinBetter')}</div>
                         ${calcStr} = ${b.base}
                     </div>
                     <hr>
                     <div class="skill-list">
-                        ${b.skills.map(s => `<p>${s.name}: ${s.type === '加法' ? '+' : 'x'}${s.value}</p>`).join('')}
+                        ${b.skills.map(s => `<p>${this.translate('ui.rewardDamageBase', { name: s.name, symbol: s.type === '加法' ? '+' : 'x', value: s.value })}</p>`).join('')}
                     </div>
                     <hr>
-                    <h3 class="total-score">本次得分: ${b.total}</h3>
+                    <h3 class="total-score">${this.translate('ui.totalScore', { total: b.total })}</h3>
                 </div>
                 <button onclick="${this.enemyMorale <= 0 ? 'game.showRewardScreen()' : 'game.newRound()'}">
-                    ${this.enemyMorale <= 0 ? '擊敗敵將！領取獎勵' : '下一回合'}
+                    ${this.enemyMorale <= 0 ? this.translate('ui.claimReward') : this.translate('ui.nextRound')}
                 </button>
             `;
         } else if (b.result === 'BUST') {
-            resultTitle = `<h2 class="lose">爆牌！</h2>`;
+            resultTitle = `<h2 class="lose">${this.translate('ui.bustTitle')}</h2>`;
             resultBody = `
                 <div class="breakdown">
                     ${pointsHTML}
-                    <p>消耗 1 次出牌次數 (剩餘: ${this.hands})</p>
+                    <p>${this.translate('ui.handConsumed', { hands: this.hands })}</p>
                 </div>
                 <button onclick="${this.hands > 0 ? 'game.newRound()' : 'game.setScreen(\'BATTLE\')'}">
-                    ${this.hands > 0 ? '下一回合' : '確定'}
+                    ${this.hands > 0 ? this.translate('ui.nextRound') : this.translate('ui.confirm')}
                 </button>
             `;
         } else if (b.result === 'LOSE') {
-            resultTitle = `<h2 class="lose">博弈失敗！</h2>`;
+            resultTitle = `<h2 class="lose">${this.translate('ui.loseTitle')}</h2>`;
             resultBody = `
                 <div class="breakdown">
                     ${pointsHTML}
-                    <p>消耗 1 次出牌次數 (剩餘: ${this.hands})</p>
+                    <p>${this.translate('ui.handConsumed', { hands: this.hands })}</p>
                 </div>
                 <button onclick="${this.hands > 0 ? 'game.newRound()' : 'game.setScreen(\'BATTLE\')'}">
-                    ${this.hands > 0 ? '下一回合' : '確定'}
+                    ${this.hands > 0 ? this.translate('ui.nextRound') : this.translate('ui.confirm')}
                 </button>
             `;
         } else {
-            resultTitle = `<h2 class="draw">平局</h2>`;
+            resultTitle = `<h2 class="draw">${this.translate('ui.drawTitle')}</h2>`;
             resultBody = `
                 <div class="breakdown">${pointsHTML}</div>
-                <button onclick="game.newRound()">下一回合</button>
+                <button onclick="game.newRound()">${this.translate('ui.nextRound')}</button>
             `;
         }
 
@@ -997,16 +1060,16 @@ class GameState {
         return `
             <div class="overlay">
                 <div class="modal reward-modal" style="max-width: 1000px;">
-                    <h2>招募武將 (剩餘金錢: $${this.money})</h2>
+                    <h2>${this.translate('ui.recruitTitle', { money: this.money })}</h2>
                     
                     ${this.selectedGenerals.length > 0 ? `
                     <div style="margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px; width: 100%;">
-                        <h4 style="color: #aaa; margin-bottom: 10px;">已擁有武將 (點擊出售)</h4>
+                        <h4 style="color: #aaa; margin-bottom: 10px;">${this.translate('ui.ownedGenerals')}</h4>
                         <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
                             ${this.selectedGenerals.map((g, i) => `
                                 <div class="owned-general" onclick="game.sellGeneral(${i})" style="padding: 8px 15px; background: #333; border: 1px solid #555; border-radius: 5px; cursor: pointer; transition: 0.2s;">
                                     <span style="color: var(--gold);">${g.name}</span>
-                                    <span style="color: #888; font-size: 0.8rem;"> (售 $${Math.floor((priceMap[g.rarity] || 200) * 0.5)})</span>
+                                    <span style="color: #888; font-size: 0.8rem;"> ${this.translate('ui.sellFor', { amount: Math.floor((priceMap[g.rarity] || 200) * 0.5) })}</span>
                                 </div>
                             `).join('')}
                         </div>
@@ -1017,19 +1080,19 @@ class GameState {
                         ${this.rewardOptions.map(g => `
                             <div class="reward-card ${this.money < (g.price || 0) ? 'cannot-afford' : ''}" onclick="game.claimRewardById('${g.id}')">
                                 <h3>${g.name}</h3>
-                                <div style="font-size: 0.8rem; color: #aaa;">${g.type === 'active' ? '【錦囊】' : (g.type === 'passive' ? '【寶物】' : g.rarity + ' | ' + g.faction + '軍')}</div>
+                                <div style="font-size: 0.8rem; color: #aaa;">${this.formatRewardCategory(g)}</div>
                                 <p style="margin: 10px 0; font-size: 0.9rem; color: var(--gold);">${g.type ? g.description : g.flavour}</p>
                                 <div class="price-tag">$${g.price}</div>
                             </div>
                         `).join('')}
                         <div class="reward-card ${this.money < this.slotUpgradePrice ? 'cannot-afford' : ''}" onclick="game.buySlot()">
-                            <h3>擴展武將位</h3>
-                            <p style="font-size: 0.8rem; color: #aaa;">永久增加 1 個槽位</p>
-                            <p style="margin: 10px 0; font-size: 0.9rem; color: var(--gold);">目前上限: ${this.maxSlots}</p>
+                            <h3>${this.translate('ui.expandSlots')}</h3>
+                            <p style="font-size: 0.8rem; color: #aaa;">${this.translate('ui.expandSlotsDesc')}</p>
+                            <p style="margin: 10px 0; font-size: 0.9rem; color: var(--gold);">${this.translate('ui.currentSlotCap', { slots: this.maxSlots })}</p>
                             <div class="price-tag">$${this.slotUpgradePrice}</div>
                         </div>
                     </div>
-                    <button onclick="game.skipReward()" style="margin-top: 30px; background: #444;">下個關卡 (跳過招募)</button>
+                    <button onclick="game.skipReward()" style="margin-top: 30px; background: #444;">${this.translate('ui.nextStage')}</button>
                 </div>
             </div>
         `;
@@ -1039,10 +1102,10 @@ class GameState {
         return `
             <div class="overlay">
                 <div class="modal">
-                    <h2 class="lose" style="font-size: 3rem; margin-bottom: 30px;">敗走麥城...</h2>
+                    <h2 class="lose" style="font-size: 3rem; margin-bottom: 30px;">${this.translate('ui.gameOver')}</h2>
                     <div style="display: flex; gap: 20px; justify-content: center;">
-                        <button onclick="game.startNewGame(); game.startBattle(1)">再試一次</button>
-                        <button onclick="game.startNewGame()" style="background: #444; border-color: #666;">回到標題</button>
+                        <button onclick="game.startNewGame(); game.startBattle(1)">${this.translate('ui.retry')}</button>
+                        <button onclick="game.startNewGame()" style="background: #444; border-color: #666;">${this.translate('ui.backToTitle')}</button>
                     </div>
                 </div>
             </div>
