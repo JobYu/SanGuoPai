@@ -441,6 +441,15 @@ class GameState {
         return this.playerHands[this.currentHandIndex];
     }
 
+    // Switch to a specific hand (for split hands)
+    switchToHand(index) {
+        if (index >= 0 && index < this.playerHands.length && this.turn === 'PLAYER') {
+            this.currentHandIndex = index;
+            this.selectedForDiscard.clear();
+            this.render();
+        }
+    }
+
     // Stand: end turn for current hand
     playerStand() {
         if (this.turn !== 'PLAYER') return;
@@ -1032,14 +1041,30 @@ class GameState {
                     ${this.logs.slice(-2).map(l => `<div>${l}</div>`).join('')}
                 </div>
 
+                ${this.playerHands.length > 1 ? `
+                <div class="split-hands-container">
+                    ${this.playerHands.map((hand, idx) => `
+                        <div class="hand-row player-hand ${idx === this.currentHandIndex ? 'active-hand' : 'inactive-hand'}"
+                             onclick="game.switchToHand(${idx})">
+                            ${hand.cards.map((c, i) => `
+                                <div class="playing-card ${this.selectedForDiscard.has(i) && idx === this.currentHandIndex ? 'selected' : ''}">
+                                    ${c.toString()}
+                                </div>
+                            `).join('')}
+                            <div class="hand-points">${hand.getPoints()} ${hand.isStand ? '(停牌)' : ''}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                ` : `
                 <div class="hand-row player-hand">
                     ${this.currentHand().cards.map((c, i) => `
-                        <div class="playing-card ${this.selectedForDiscard.has(i) ? 'selected' : ''}" 
+                        <div class="playing-card ${this.selectedForDiscard.has(i) ? 'selected' : ''}"
                              onclick="game.toggleCardSelection(${i})">
                             ${c.toString()}
                         </div>
                     `).join('')}
                 </div>
+                `}
 
                 <div class="action-row">
                     <div class="point-bubble" style="${this.currentHand().isBust() ? 'color: #ff4d4d; border: 2px solid #ff4d4d;' : ''}">
@@ -1049,11 +1074,6 @@ class GameState {
                         <button onclick="game.playerHit()" ${this.turn !== 'PLAYER' || this.hitsThisRound >= this.hitLimit || this.currentHand().isStand ? 'disabled' : ''}>
                             ${this.translate('ui.hit', { current: this.hitsThisRound, limit: this.hitLimit })}
                         </button>
-                        ${this.playerHands.length > 1 ? `
-                        <button onclick="game.playerStand()" ${this.turn !== 'PLAYER' || this.currentHand().isStand ? 'disabled' : ''}>
-                            ${this.translate('ui.stand')}
-                        </button>
-                        ` : ''}
                         <button onclick="game.playerDoubleDown()" ${this.turn !== 'PLAYER' || !this.currentHand().canDoubleDown() ? 'disabled' : ''}>
                             ${this.translate('ui.doubleDown')}
                         </button>
