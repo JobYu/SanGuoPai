@@ -617,176 +617,205 @@ class GameState {
 
     resolveTurn() {
         this.turn = 'PLAYER';
-        const pPoints = this.currentHand().getPoints();
         const ePoints = this.enemyHand.getPoints();
 
-        const breakdown = {
-            base: 0,
-            skills: [],
-            total: 0,
-            isBlackjack: this.currentHand().isBlackjack(),
-            result: 'DRAW'
-        };
+        // Process all player hands
+        const handResults = [];
+        let totalMoney = 0;
 
-        const additive = [];
-        const multipliers = [];
+        for (let handIndex = 0; handIndex < this.playerHands.length; handIndex++) {
+            const hand = this.playerHands[handIndex];
+            const pPoints = hand.getPoints();
 
-        // Apply tracked skill effects from "要牌時" and "回合開始時" triggers
-        if (this.guanPingActive && this.selectedGenerals.some(g => g.id === 'guan_ping')) {
-            additive.push({ name: '關平(隨父從征)', value: 75, type: '加法' });
-        }
-        if (this.ganNingActive && this.selectedGenerals.some(g => g.id === 'gan_ning')) {
-            additive.push({ name: '甘寧(奇襲)', value: 90, type: '加法' });
-        }
-        if (this.zhugeLiangActive && !this.currentHand().isBust() && this.selectedGenerals.some(g => g.id === 'zhu_ge_liang')) {
-            multipliers.push({ name: '諸葛亮(觀星)', value: 2.2, type: '乘法' });
-        }
+            const breakdown = {
+                handIndex: handIndex + 1,
+                pPoints: pPoints,
+                ePoints: ePoints,
+                eEffective: ePoints > 21 ? 0 : ePoints,
+                base: 0,
+                skills: [],
+                total: 0,
+                isBlackjack: hand.isBlackjack(),
+                result: 'DRAW',
+                cards: hand.cards.map(c => c.toString())
+            };
 
-        this.selectedGenerals.forEach(g => {
-            const isSettlement = g.skill_trigger === '結算時';
-            const is21Trigger = g.skill_trigger === '達成 21 點時' && pPoints === 21;
-            const isXiahouDunBuff = g.skill_trigger === '爆牌時' && this.xiahouDunBuffActive;
+            const additive = [];
+            const multipliers = [];
 
-            if (isSettlement || is21Trigger || isXiahouDunBuff) {
-                let effectApplied = false;
-                g.skill_effects.forEach(eff => {
-                    let shouldApply = false;
-                    const cond = eff.condition;
-
-                    if (!cond || cond === '該次結算' || cond === '無' || cond === '無條件') {
-                        shouldApply = true;
-                    } else if (cond === '玩家點數恰為 21') {
-                        if (pPoints === 21) shouldApply = true;
-                    } else if (cond === '否則') {
-                        if (!effectApplied) shouldApply = true;
-                    } else if (cond === '玩家點數 ≥ 15') {
-                        if (pPoints >= 15) shouldApply = true;
-                    } else if (cond === '玩家點數 ≥ 17 且 ≤ 20' || cond === '玩家點數為 17～20') {
-                        if (pPoints >= 17 && pPoints <= 20) shouldApply = true;
-                    } else if (cond === '敵將點數 ≥ 17') {
-                        if (ePoints >= 17) shouldApply = true;
-                    } else if (cond === '敵將點數 ≥ 18') {
-                        if (ePoints >= 18) shouldApply = true;
-                    } else if (cond === '玩家要牌次數為 0' || cond === '玩家未要牌即直接出牌（僅初始兩張）') {
-                        if (this.hitsThisRound === 0) shouldApply = true;
-                    } else if (cond === '玩家要牌次數為 1') {
-                        if (this.hitsThisRound === 1) shouldApply = true;
-                    } else if (cond === '玩家要牌次數 ≤ 1') {
-                        if (this.hitsThisRound <= 1) shouldApply = true;
-                    } else if (cond === '玩家要牌次數 ≥ 2') {
-                        if (this.hitsThisRound >= 2) shouldApply = true;
-                    } else if (cond === '玩家手牌數為 2 張') {
-                        if (this.currentHand().cards.length === 2) shouldApply = true;
-                    } else if (cond === '玩家手牌數 ≥ 4 張') {
-                        if (this.currentHand().cards.length >= 4) shouldApply = true;
-                    } else if (cond === '本回合要牌得到 A 則結算時額外加上') {
-                        if (this.drewAceThisRound) shouldApply = true;
-                    } else if (cond === '手牌中至少 2 張同花色') {
-                        const suits = this.currentHand().cards.map(c => c.suit);
-                        const counts = {};
-                        suits.forEach(s => counts[s] = (counts[s] || 0) + 1);
-                        if (Object.values(counts).some(c => c >= 2)) shouldApply = true;
-                    } else if (cond === '手牌中有 3 張以上同花色') {
-                        const suits = this.currentHand().cards.map(c => c.suit);
-                        const counts = {};
-                        suits.forEach(s => counts[s] = (counts[s] || 0) + 1);
-                        if (Object.values(counts).some(c => c >= 3)) shouldApply = true;
-                    } else if (cond === '敵將明牌為 A') {
-                        if (this.enemyHand.cards[0] && this.enemyHand.cards[0].rank === 'A') shouldApply = true;
-                    } else if (cond === '敵將明牌為 10 或 J/Q/K（視為 10）') {
-                        const rank = this.enemyHand.cards[0] ? this.enemyHand.cards[0].rank : null;
-                        if (['10', 'J', 'Q', 'K'].includes(rank)) shouldApply = true;
-                    } else if (cond === '上一回合己方曾爆牌（風險回報）') {
-                        if (this.bustLastRound) shouldApply = true;
-                    } else if (cond === '下一回合結算時生效（僅下一場）') {
-                        if (this.xiahouDunBuffActive) shouldApply = true;
-                    } else if (cond === '本回合使用過錦囊') {
-                        if (this.schemesUsedThisRound) shouldApply = true;
-                    } else if (cond.includes('玩家點數大於敵將且差 ≥')) {
-                        const diff = parseInt(cond.match(/\d+/)[0]);
-                        if ((pPoints - ePoints) >= diff) shouldApply = true;
-                    } else {
-                        // Fallback: if we haven't implemented it, assume it applies for now
-                        // to maintain existing (though possibly loose) behavior
-                        shouldApply = true;
-                    }
-
-                    if (shouldApply) {
-                        if (eff.type === '加法') additive.push({ name: g.name, value: eff.value, type: '加法' });
-                        if (eff.type === '乘法') multipliers.push({ name: g.name, value: eff.value, type: '乘法' });
-                        effectApplied = true;
-                    }
-                });
+            // Apply tracked skill effects (only for current hand context)
+            if (handIndex === this.currentHandIndex) {
+                if (this.guanPingActive && this.selectedGenerals.some(g => g.id === 'guan_ping')) {
+                    additive.push({ name: '關平(隨父從征)', value: 75, type: '加法' });
+                }
+                if (this.ganNingActive && this.selectedGenerals.some(g => g.id === 'gan_ning')) {
+                    additive.push({ name: '甘寧(奇襲)', value: 90, type: '加法' });
+                }
+                if (this.zhugeLiangActive && !hand.isBust() && this.selectedGenerals.some(g => g.id === 'zhu_ge_liang')) {
+                    multipliers.push({ name: '諸葛亮(觀星)', value: 2.2, type: '乘法' });
+                }
             }
-        });
 
+            // Apply general skills based on hand result
+            this.selectedGenerals.forEach(g => {
+                const isSettlement = g.skill_trigger === '結算時';
+                const is21Trigger = g.skill_trigger === '達成 21 點時' && pPoints === 21;
+                const isXiahouDunBuff = g.skill_trigger === '爆牌時' && this.xiahouDunBuffActive;
+
+                if (isSettlement || is21Trigger || isXiahouDunBuff) {
+                    let effectApplied = false;
+                    g.skill_effects.forEach(eff => {
+                        let shouldApply = false;
+                        const cond = eff.condition;
+
+                        if (!cond || cond === '該次結算' || cond === '無' || cond === '無條件') {
+                            shouldApply = true;
+                        } else if (cond === '玩家點數恰為 21') {
+                            if (pPoints === 21) shouldApply = true;
+                        } else if (cond === '否則') {
+                            if (!effectApplied) shouldApply = true;
+                        } else if (cond === '玩家點數 ≥ 15') {
+                            if (pPoints >= 15) shouldApply = true;
+                        } else if (cond === '玩家點數 ≥ 17 且 ≤ 20' || cond === '玩家點數為 17～20') {
+                            if (pPoints >= 17 && pPoints <= 20) shouldApply = true;
+                        } else if (cond === '敵將點數 ≥ 17') {
+                            if (ePoints >= 17) shouldApply = true;
+                        } else if (cond === '敵將點數 ≥ 18') {
+                            if (ePoints >= 18) shouldApply = true;
+                        } else if (cond === '玩家要牌次數為 0' || cond === '玩家未要牌即直接出牌（僅初始兩張）') {
+                            if (this.hitsThisRound === 0) shouldApply = true;
+                        } else if (cond === '玩家要牌次數為 1') {
+                            if (this.hitsThisRound === 1) shouldApply = true;
+                        } else if (cond === '玩家要牌次數 ≤ 1') {
+                            if (this.hitsThisRound <= 1) shouldApply = true;
+                        } else if (cond === '玩家要牌次數 ≥ 2') {
+                            if (this.hitsThisRound >= 2) shouldApply = true;
+                        } else if (cond === '玩家手牌數為 2 張') {
+                            if (hand.cards.length === 2) shouldApply = true;
+                        } else if (cond === '玩家手牌數 ≥ 4 張') {
+                            if (hand.cards.length >= 4) shouldApply = true;
+                        } else if (cond === '本回合要牌得到 A 則結算時額外加上') {
+                            if (this.drewAceThisRound) shouldApply = true;
+                        } else if (cond === '手牌中至少 2 張同花色') {
+                            const suits = hand.cards.map(c => c.suit);
+                            const counts = {};
+                            suits.forEach(s => counts[s] = (counts[s] || 0) + 1);
+                            if (Object.values(counts).some(c => c >= 2)) shouldApply = true;
+                        } else if (cond === '手牌中有 3 張以上同花色') {
+                            const suits = hand.cards.map(c => c.suit);
+                            const counts = {};
+                            suits.forEach(s => counts[s] = (counts[s] || 0) + 1);
+                            if (Object.values(counts).some(c => c >= 3)) shouldApply = true;
+                        } else if (cond === '敵將明牌為 A') {
+                            if (this.enemyHand.cards[0] && this.enemyHand.cards[0].rank === 'A') shouldApply = true;
+                        } else if (cond === '敵將明牌為 10 或 J/Q/K（視為 10）') {
+                            const rank = this.enemyHand.cards[0] ? this.enemyHand.cards[0].rank : null;
+                            if (['10', 'J', 'Q', 'K'].includes(rank)) shouldApply = true;
+                        } else if (cond === '上一回合己方曾爆牌（風險回報）') {
+                            if (this.bustLastRound) shouldApply = true;
+                        } else if (cond === '下一回合結算時生效（僅下一場）') {
+                            if (this.xiahouDunBuffActive) shouldApply = true;
+                        } else if (cond === '本回合使用過錦囊') {
+                            if (this.schemesUsedThisRound) shouldApply = true;
+                        } else if (cond.includes('玩家點數大於敵將且差 ≥')) {
+                            const diff = parseInt(cond.match(/\d+/)[0]);
+                            if ((pPoints - ePoints) >= diff) shouldApply = true;
+                        } else {
+                            shouldApply = true;
+                        }
+
+                        if (shouldApply) {
+                            if (eff.type === '加法') additive.push({ name: g.name, value: eff.value, type: '加法' });
+                            if (eff.type === '乘法') multipliers.push({ name: g.name, value: eff.value, type: '乘法' });
+                            effectApplied = true;
+                        }
+                    });
+                }
+            });
+
+            // Faction bonuses
+            const fCounts = this.getFactionCounts();
+            if (fCounts['吳'] >= 3) {
+                const suits = hand.cards.map(c => c.suit);
+                const counts = {};
+                suits.forEach(s => counts[s] = (counts[s] || 0) + 1);
+                if (Object.values(counts).some(c => c >= 3)) {
+                    multipliers.push({ name: '吳軍羈絆(三同花)', value: 1.1, type: '乘法' });
+                }
+            }
+            if (fCounts['群'] >= 3) {
+                const variance = Math.floor(Math.random() * 21) - 10;
+                additive.push({ name: '群雄羈絆', value: 50 + variance, type: '加法' });
+            }
+
+            // Calculate money for this hand
+            const moneyResult = CombatEngine.calculateMoney(
+                pPoints, ePoints, breakdown.isBlackjack,
+                hand.betMultiplier,
+                additive.map(a => a.value),
+                multipliers.map(m => m.value)
+            );
+
+            if (pPoints > 21) {
+                breakdown.result = 'BUST';
+                if (handIndex === this.currentHandIndex) {
+                    this.bustThisRound = true;
+                }
+            } else if (ePoints > 21 || pPoints > ePoints || pPoints === 21) {
+                breakdown.result = moneyResult.result;
+                breakdown.money = moneyResult.money;
+                breakdown.base = moneyResult.baseMoney || moneyResult.money;
+                breakdown.skills = [...additive.map(a => ({ name: a.name, type: a.type, value: a.value })),
+                                    ...multipliers.map(m => ({ name: m.name, type: m.type, value: m.value }))];
+                breakdown.total = moneyResult.money;
+                totalMoney += moneyResult.money;
+            } else if (pPoints < ePoints) {
+                breakdown.result = 'LOSE';
+            }
+
+            handResults.push(breakdown);
+        }
+
+        // Update total money
+        this.battleMoney += totalMoney;
+        this.money += totalMoney;
+
+        if (totalMoney > 0) {
+            this.logs.push(this.translate('log.moneyAwarded', { amount: totalMoney }));
+        }
+
+        // 蜀軍羈絆：反擊
         const fCounts = this.getFactionCounts();
-        if (fCounts['吳'] >= 3) {
-            const suits = this.currentHand().cards.map(c => c.suit);
-            const counts = {};
-            suits.forEach(s => counts[s] = (counts[s] || 0) + 1);
-            if (Object.values(counts).some(c => c >= 3)) {
-                multipliers.push({ name: '吳軍羈絆(三同花)', value: 1.1, type: '乘法' });
-            }
-        }
-        if (fCounts['群'] >= 3) {
-            const variance = Math.floor(Math.random() * 21) - 10;
-            additive.push({ name: '群雄羈絆', value: 50 + variance, type: '加法' });
-        }
-
-        const moneyResult = CombatEngine.calculateMoney(
-            pPoints, ePoints, breakdown.isBlackjack,
-            this.currentHand().betMultiplier,
-            additive.map(a => a.value),
-            multipliers.map(m => m.value)
-        );
-
-        breakdown.pPoints = pPoints;
-        breakdown.ePoints = ePoints;
-        breakdown.eEffective = ePoints > 21 ? 0 : ePoints;
-
-        if (pPoints > 21) {
-            breakdown.result = 'BUST';
-            this.bustThisRound = true;
-            // Bust: lose current bet (no money gained)
-            if (this.selectedGenerals.some(g => g.id === 'xia_hou_dun')) {
-                this.xiahouDunBuffPending = true;
-                this.logs.push(this.translate('log.xiahouDun'));
-            }
-
-            // 蜀軍羈絆：反擊（爆牌也算輸）
+        if (handResults.some(r => r.result === 'BUST')) {
             const shuCount = fCounts['蜀'] || 0;
             if (shuCount >= 3) {
                 const counterDamage = 30 + (shuCount - 3) * 10;
                 this.enemyMorale -= counterDamage;
                 this.logs.push(this.translate('log.shuCounter', { damage: counterDamage }));
             }
-        } else if (ePoints > 21 || pPoints > ePoints || pPoints === 21) {
-            breakdown.result = moneyResult.result;
-            breakdown.money = moneyResult.money;
-            breakdown.base = moneyResult.baseMoney || moneyResult.money;
-            breakdown.skills = [...additive.map(a => ({ name: a.name, type: a.type, value: a.value })),
-                                ...multipliers.map(m => ({ name: m.name, type: m.type, value: m.value }))];
-            breakdown.total = moneyResult.money;
-            this.battleMoney += moneyResult.money;
-            this.money += moneyResult.money;
-
-            if (moneyResult.money > 0) {
-                this.logs.push(this.translate('log.moneyAwarded', { amount: moneyResult.money }));
-            }
-        } else if (pPoints < ePoints) {
-            breakdown.result = 'LOSE';
-            // Lose: no money gained
         }
 
-        // 天時難度：敵將有 25% 機率在結算時獲得額外 1.2x 倍率（僅敵將勝利時）
-        if (this.difficulty === '困難' && (breakdown.result === 'BUST' || breakdown.result === 'LOSE') && Math.random() < 0.25) {
+        // 夏侯惇技能
+        if (handResults.some(r => r.result === 'BUST') && this.selectedGenerals.some(g => g.id === 'xia_hou_dun')) {
+            this.xiahouDunBuffPending = true;
+            this.logs.push(this.translate('log.xiahouDun'));
+        }
+
+        // 天時難度：敵將有 25% 機率獲得額外 1.2x 倍率
+        if (this.difficulty === '困難' && handResults.some(r => r.result === 'BUST' || r.result === 'LOSE') && Math.random() < 0.25) {
             const enemyExtraDamage = Math.floor(20 * 1.2);
             this.money = Math.max(0, this.money - enemyExtraDamage);
             this.logs.push(this.translate('log.tianshiEnemyBuff', { damage: enemyExtraDamage }));
         }
 
-        this.showSettlement(breakdown);
+        // Show settlement for all hands
+        this.showSettlementMulti(handResults);
+    }
+
+    showSettlementMulti(handResults) {
+        this.currentScreen = 'SETTLEMENT';
+        this.settlementData = handResults;
+        this.render();
     }
 
     showSettlement(breakdown) {
@@ -1258,16 +1287,9 @@ class GameState {
     }
 
     renderSettlementHTML() {
-        const b = this.settlementData;
-
-        const playerHandHTML = `
-            <div class="settlement-hand">
-                <span>${this.translate('ui.yourHand')}</span>
-                <div class="hand-row mini">
-                    ${this.currentHand().cards.map(c => `<div class="playing-card mini">${c.toString()}</div>`).join('')}
-                </div>
-            </div>
-        `;
+        const data = this.settlementData;
+        const isMultiHand = Array.isArray(data);
+        const handResults = isMultiHand ? data : [data];
 
         const enemyHandHTML = `
             <div class="settlement-hand">
@@ -1278,55 +1300,78 @@ class GameState {
             </div>
         `;
 
-        const pointsHTML = `
-            <div class="calc-row" style="display: flex; gap: 30px; justify-content: center; align-items: center; margin: 15px 0; font-size: 1.2rem;">
-                <div>${this.translate('ui.playerLabel')}: <strong style="color: var(--gold-bright); font-size: 1.8rem;">${b.pPoints}</strong> ${b.pPoints > 21 ? `<span style="color: #ff4d4d">${this.translate('ui.bustMark')}</span>` : ''}</div>
-                <div style="font-size: 1.5rem; color: #666; font-weight: bold;">VS</div>
-                <div>${this.translate('ui.enemyLabel')}: <strong style="color: #ff4d4d; font-size: 1.8rem;">${b.ePoints}</strong> ${b.ePoints > 21 ? `<span style="color: #ff4d4d">${this.translate('ui.bustMark')}</span>` : ''}</div>
-            </div>
-        `;
+        // Calculate total money from all hands
+        const totalMoney = handResults.reduce((sum, h) => sum + (h.total || 0), 0);
+        const allBust = handResults.every(h => h.result === 'BUST');
+        const allLose = handResults.every(h => h.result === 'LOSE');
+        const anyWin = handResults.some(h => h.result === 'WIN' || h.result === 'BLACKJACK');
+
+        // Render each hand result
+        const handsHTML = handResults.map((b, idx) => {
+            const handLabel = isMultiHand ? `第 ${b.handIndex} 手牌` : this.translate('ui.yourHand');
+            const resultClass = b.result === 'WIN' || b.result === 'BLACKJACK' ? 'win' : (b.result === 'BUST' ? 'bust' : (b.result === 'LOSE' ? 'lose' : 'draw'));
+            const resultText = b.result === 'WIN' || b.result === 'BLACKJACK' ? '勝利' : (b.result === 'BUST' ? '爆牌' : (b.result === 'LOSE' ? '失敗' : '平局'));
+
+            return `
+                <div class="settlement-hand-item" style="border: 1px solid rgba(212,175,55,0.3); border-radius: 8px; padding: 15px; margin: 10px 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span style="color: var(--gold);">${handLabel}</span>
+                        <span class="${resultClass}" style="font-weight: bold;">
+                            ${resultText}${b.total > 0 ? ` (+$${b.total})` : ''}
+                        </span>
+                    </div>
+                    <div class="hand-row mini" style="margin-bottom: 10px;">
+                        ${b.cards.map(c => `<div class="playing-card mini">${c}</div>`).join('')}
+                    </div>
+                    <div style="display: flex; gap: 20px; justify-content: center; font-size: 1rem;">
+                        <span>${this.translate('ui.playerLabel')}: <strong style="color: var(--gold-bright);">${b.pPoints}</strong> ${b.pPoints > 21 ? '<span style="color: #ff4d4d">爆</span>' : ''}</span>
+                        <span style="color: #666;">VS</span>
+                        <span>${this.translate('ui.enemyLabel')}: <strong style="color: #ff4d4d;">${b.ePoints}</strong></span>
+                    </div>
+                </div>
+            `;
+        }).join('');
 
         let resultTitle = '';
         let resultBody = '';
 
-        if (b.result === 'WIN' || b.result === 'BLACKJACK') {
-            const currentMultiplier = 10 + (21 - b.pPoints);
-            const calcStr = this.translate('ui.baseRewardFormula', { points: b.pPoints, multiplier: currentMultiplier });
-            resultTitle = `<h2 class="win">${b.isBlackjack ? this.translate('ui.blackjackTitle') : this.translate('ui.winTitle')}</h2>`;
+        if (anyWin) {
+            resultTitle = `<h2 class="win">${this.translate('ui.winTitle')}</h2>`;
             resultBody = `
                 <div class="breakdown">
-                    ${pointsHTML}
-                    <div class="calc-formula" style="color: var(--gold-bright); font-size: 1.1rem; border: 1px dashed rgba(212,175,55,0.3); padding: 10px; border-radius: 8px;">
-                        <div style="font-size: 0.9rem; color: #888; margin-bottom: 5px;">${this.translate('ui.lowerWinBetter')}</div>
-                        ${calcStr} = ${b.base + b.pPoints}
+                    ${enemyHandHTML}
+                    <div style="max-height: 300px; overflow-y: auto; margin: 15px 0;">
+                        ${handsHTML}
                     </div>
                     <hr>
-                    <div class="skill-list">
-                        ${b.skills.map(s => `<p>${this.translate('ui.rewardDamageBase', { name: s.name, symbol: s.type === '加法' ? '+' : 'x', value: s.value })}</p>`).join('')}
-                    </div>
-                    <hr>
-                    <h3 class="total-score">${this.translate('ui.totalScore', { total: b.total })}</h3>
+                    <h3 class="total-score">總計獲得: $${totalMoney}</h3>
                 </div>
                 <button onclick="${this.battleMoney >= this.moneyTarget ? 'game.showRewardScreen()' : 'game.newRound()'}">
                     ${this.battleMoney >= this.moneyTarget ? this.translate('ui.claimReward') : this.translate('ui.nextRound')}
                 </button>
             `;
-        } else if (b.result === 'BUST') {
+        } else if (allBust) {
             resultTitle = `<h2 class="lose">${this.translate('ui.bustTitle')}</h2>`;
             resultBody = `
                 <div class="breakdown">
-                    ${pointsHTML}
+                    ${enemyHandHTML}
+                    <div style="max-height: 300px; overflow-y: auto; margin: 15px 0;">
+                        ${handsHTML}
+                    </div>
                     <p>${this.translate('ui.handConsumed', { hands: this.hands })}</p>
                 </div>
                 <button onclick="${this.hands > 0 ? 'game.newRound()' : 'game.setScreen(\'BATTLE\')'}">
                     ${this.hands > 0 ? this.translate('ui.nextRound') : this.translate('ui.confirm')}
                 </button>
             `;
-        } else if (b.result === 'LOSE') {
+        } else if (allLose) {
             resultTitle = `<h2 class="lose">${this.translate('ui.loseTitle')}</h2>`;
             resultBody = `
                 <div class="breakdown">
-                    ${pointsHTML}
+                    ${enemyHandHTML}
+                    <div style="max-height: 300px; overflow-y: auto; margin: 15px 0;">
+                        ${handsHTML}
+                    </div>
                     <p>${this.translate('ui.handConsumed', { hands: this.hands })}</p>
                 </div>
                 <button onclick="${this.hands > 0 ? 'game.newRound()' : 'game.setScreen(\'BATTLE\')'}">
@@ -1336,25 +1381,25 @@ class GameState {
         } else {
             resultTitle = `<h2 class="draw">${this.translate('ui.drawTitle')}</h2>`;
             resultBody = `
-                <div class="breakdown">${pointsHTML}</div>
+                <div class="breakdown">
+                    ${enemyHandHTML}
+                    <div style="max-height: 300px; overflow-y: auto; margin: 15px 0;">
+                        ${handsHTML}
+                    </div>
+                </div>
                 <button onclick="game.newRound()">${this.translate('ui.nextRound')}</button>
             `;
         }
 
         return `
             <div class="overlay">
-                <div class="modal">
+                <div class="modal" style="max-width: 600px;">
                     ${resultTitle}
-                    <div style="display: flex; flex-direction: column; gap: 10px; align-items: center; margin: 10px 0;">
-                        ${enemyHandHTML}
-                        ${playerHandHTML}
-                    </div>
                     ${resultBody}
                 </div>
             </div>
         `;
     }
-
     renderRewardHTML() {
         const priceMap = { 'Common': 100, 'Uncommon': 250, 'Rare': 600, 'Legendary': 1500 };
         return `
