@@ -7,7 +7,7 @@
             "type": "passive",
             "effect_type": "additive_damage",
             "value": 100,
-            "description": "天命所歸：每次結算時，額外造成 100 點傷害。",
+            "description": "天命所歸：每次結算時，額外獲得 100 金錢。",
             "price": 2000
         },
         {

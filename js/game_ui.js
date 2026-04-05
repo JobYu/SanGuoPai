@@ -697,7 +697,7 @@ class GameState {
 
         const moneyResult = CombatEngine.calculateMoney(
             pPoints, ePoints, breakdown.isBlackjack,
-            1, // betMultiplier (can be enhanced for double down)
+            this.currentHand().betMultiplier,
             additive.map(a => a.value),
             multipliers.map(m => m.value)
         );
