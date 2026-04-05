@@ -412,6 +412,218 @@ button:disabled {
     margin-bottom: 10px;
 }
 
+.title-screen {
+    position: relative;
+    width: 100%;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 56px 64px 44px;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 22% 18%, rgba(212, 175, 55, 0.22) 0%, transparent 30%),
+        linear-gradient(135deg, rgba(14, 10, 16, 0.96) 0%, rgba(26, 18, 22, 0.88) 50%, rgba(12, 10, 14, 0.92) 100%);
+}
+
+.title-hero-art {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: min(42%, 460px);
+    background:
+        linear-gradient(270deg, rgba(8, 6, 10, 0.1) 0%, rgba(8, 6, 10, 0.45) 48%, rgba(8, 6, 10, 0.95) 100%),
+        linear-gradient(180deg, rgba(212, 175, 55, 0.08) 0%, rgba(192, 57, 43, 0.12) 100%),
+        url('./public/assets/avatars/diao_chan_sexy_pixel_3.png');
+    background-repeat: no-repeat;
+    background-position: right center;
+    background-size: contain;
+    opacity: 0.92;
+    pointer-events: none;
+}
+
+.title-backdrop-glow {
+    position: absolute;
+    width: 380px;
+    height: 380px;
+    right: 14%;
+    top: 50%;
+    transform: translateY(-50%);
+    background: radial-gradient(circle, rgba(192, 57, 43, 0.28) 0%, rgba(212, 175, 55, 0.14) 38%, transparent 72%);
+    filter: blur(18px);
+    pointer-events: none;
+}
+
+.title-copy {
+    position: relative;
+    z-index: 2;
+    width: min(100%, 640px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 18px;
+}
+
+.title-kicker {
+    letter-spacing: 0.28rem;
+    text-transform: uppercase;
+    color: rgba(255, 215, 0, 0.78);
+    font-size: 0.9rem;
+}
+
+.title-subtitle {
+    max-width: 520px;
+    font-size: 1.22rem;
+    color: rgba(235, 230, 224, 0.88);
+    font-style: italic;
+    line-height: 1.6;
+}
+
+.title-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px;
+    gap: 12px;
+}
+
+.title-start-button {
+    font-size: 1.5rem;
+    padding: 16px 64px;
+    min-width: 260px;
+    box-shadow: 0 16px 30px rgba(139, 0, 0, 0.35);
+}
+
+.title-leaderboard {
+    position: relative;
+    z-index: 2;
+    margin-top: 38px;
+    width: min(100%, 640px);
+    padding: 22px 24px;
+    border-radius: 16px;
+    background: rgba(8, 8, 12, 0.68);
+    border: 1px solid rgba(212, 175, 55, 0.24);
+    backdrop-filter: blur(12px);
+}
+
+.title-language-panel {
+    width: min(260px, 100%);
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(10, 10, 14, 0.74);
+    border: 1px solid rgba(212, 175, 55, 0.26);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.32);
+    backdrop-filter: blur(16px);
+}
+
+/* Difficulty Selector */
+.difficulty-selector {
+    width: min(420px, 100%);
+    padding: 16px 20px;
+    border-radius: 16px;
+    background: rgba(10, 10, 14, 0.74);
+    border: 1px solid rgba(212, 175, 55, 0.26);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.32);
+    backdrop-filter: blur(16px);
+    text-align: center;
+}
+
+.difficulty-label {
+    color: var(--gold);
+    font-size: 1rem;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.difficulty-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.difficulty-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--gold);
+    background: transparent;
+    color: var(--gold);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.3s;
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    box-shadow: none;
+}
+
+.difficulty-btn.active,
+.difficulty-btn:hover {
+    background: var(--gold);
+    color: #000;
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+}
+
+.difficulty-desc {
+    font-size: 0.85rem;
+    color: #aaa;
+    margin-top: 10px;
+    line-height: 1.4;
+}
+
+.title-language-label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: #b8b0a6;
+    font-size: 0.86rem;
+    align-items: center;
+    text-align: center;
+}
+
+.title-language-select {
+    width: 100%;
+    min-width: 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(26, 20, 22, 0.9);
+    color: #f2ede6;
+    border: 1px solid rgba(212, 175, 55, 0.4);
+}
+
+.title-hint {
+    width: min(100%, 560px);
+    margin-top: 26px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    background: rgba(9, 8, 10, 0.52);
+    border: 1px solid rgba(212, 175, 55, 0.16);
+    color: #8a7d73;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    transition: opacity 1s ease-out;
+    text-align: left;
+}
+
+@media (max-width: 900px) {
+    .title-screen {
+        padding: 44px 28px 140px;
+    }
+
+    .title-screen h1 {
+        font-size: 4.6rem;
+    }
+
+    .title-hero-art {
+        width: 52%;
+        opacity: 0.4;
+        background-position: 120% center;
+    }
+
+    .title-language-panel {
+        width: min(100%, 320px);
+    }
+}
+
 .reward-card {
     border: 2px solid rgba(212, 175, 55, 0.3);
     background: rgba(255, 255, 255, 0.03);
@@ -513,4 +725,19 @@ button:disabled {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--gold);
+}
+
+/* Pixel Art Rendering - 像素畫銳利顯示 */
+.pixel-art,
+img[src*=".png"],
+img[src*=".gif"] {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    -ms-interpolation-mode: nearest-neighbor;
+}
+
+/* 標題圖片專用樣式 */
+.title-logo {
+    image-rendering: pixelated !important;
+    image-rendering: crisp-edges !important;
 }

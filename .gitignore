@@ -24,3 +24,7 @@ Thumbs.db
 superpowers-main/
 *.log
 .env
+.alma-snapshots
+
+# Claude Code
+.claude/settings.local.json

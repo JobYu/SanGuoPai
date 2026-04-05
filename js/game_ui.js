@@ -1,6 +1,7 @@
 // Game UI and State Management
 import dataManager from './data_manager.js';
 import { Deck, Hand, SUITS, RANKS } from './engine/blackjack.js';
+import { splitHand } from './engine/blackjack.js';
 import AIEngine from './engine/ai.js';
 import CombatEngine from './engine/combat.js';
 import { applyDocumentLocalization, createTranslator, getInitialLocale, saveLocalePreference, translateDataLabel } from './i18n.js';
@@ -12,10 +13,14 @@ class GameState {
         this.discards = 3;
         this.selectedGenerals = [];
         this.currentEnemy = null;
-        this.enemyMorale = 0;
+        this.battleMoney = 0;  // Money earned in current battle
+        this.currentRound = 0;  // Current round number
+        this.maxRounds = 3;  // Max rounds for this battle
+        this.moneyTarget = 0;  // Target money to win
 
         this.deck = new Deck();
-        this.playerHand = new Hand();
+        this.playerHands = [new Hand()];  // Support multiple hands after split
+        this.currentHandIndex = 0;  // Which hand is currently being played
         this.enemyHand = new Hand();
         this.selectedForDiscard = new Set();
 
@@ -29,6 +34,12 @@ class GameState {
         this.hitLimit = 3;
         this.hitsThisRound = 0;
         this.money = 0;
+
+        // Skill tracking flags
+        this.guanPingActive = false;   // 關平：本回合要牌抽到 A
+        this.ganNingActive = false;    // 甘寧：本回合第一次要牌
+        this.zhugeLiangActive = false; // 諸葛亮：觀星標記
+        this.firstHitDone = false;     // 追蹤是否已經要過牌
         this.maxSlots = 5;
         this.slotUpgradePrice = 500;
         this.leaderboard = this.getLeaderboard();
@@ -36,8 +47,11 @@ class GameState {
         this.schemes = []; // Player's current schemes
         this.maxSchemes = 3;
         this.relics = []; // Passive items
+        this.difficulty = '標準'; // 預設難度：入門、標準、困難
+        this.difficulties = ['入門', '標準', '困難'];
         this.locale = getInitialLocale();
         this.t = createTranslator(this.locale);
+        this.showInitialHint = true; // 頁面加載時顯示提示
     }
 
     getCharacterImage(id) {
@@ -78,6 +92,74 @@ class GameState {
         saveLocalePreference(globalThis.localStorage, locale);
         applyDocumentLocalization(locale);
         this.render();
+    }
+
+    showSettings() {
+        this.previousScreen = this.currentScreen;
+        this.currentScreen = 'SETTINGS';
+        this.render();
+    }
+
+    closeSettings() {
+        this.currentScreen = this.previousScreen || 'START';
+        this.previousScreen = null;
+        this.render();
+    }
+
+    renderSettingsHTML() {
+        return `
+            <div class="settings-screen">
+                <div class="settings-header">
+                    <h2>${this.translate('ui.settings')}</h2>
+                </div>
+
+                <div class="settings-section">
+                    <h3>${this.translate('difficulty.title')}</h3>
+                    <div class="difficulty-buttons">
+                        <button class="difficulty-btn ${this.difficulty === '入門' ? 'active' : ''}"
+                                onclick="game.setDifficulty('入門')">${this.translate('difficulty.easy')}</button>
+                        <button class="difficulty-btn ${this.difficulty === '標準' ? 'active' : ''}"
+                                onclick="game.setDifficulty('標準')">${this.translate('difficulty.normal')}</button>
+                        <button class="difficulty-btn ${this.difficulty === '困難' ? 'active' : ''}"
+                                onclick="game.setDifficulty('困難')">${this.translate('difficulty.hard')}</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>${this.translate('ui.language')}</h3>
+                    <div class="language-buttons">
+                        <button class="language-btn ${this.locale === 'zh-TW' ? 'active' : ''}"
+                                onclick="game.setLocale('zh-TW')">${this.translate('ui.languageOptionZhTW')}</button>
+                        <button class="language-btn ${this.locale === 'zh-CN' ? 'active' : ''}"
+                                onclick="game.setLocale('zh-CN')">${this.translate('ui.languageOptionZhCN')}</button>
+                        <button class="language-btn ${this.locale === 'en' ? 'selected' : ''}"
+                                onclick="game.setLocale('en')">${this.translate('ui.languageOptionEn')}</button>
+                    </div>
+                </div>
+
+                <div class="settings-close-section">
+                    <button class="close-settings-button" onclick="game.closeSettings()">${this.translate('ui.close')}</button>
+                </div>
+            </div>
+        `;
+    }
+
+    setDifficulty(difficulty) {
+        if (this.difficulties.includes(difficulty)) {
+            this.difficulty = difficulty;
+            this.render();
+        }
+    }
+
+
+    getDifficultyMultiplier() {
+        const multipliers = { '入門': 0.8, '標準': 1.0, '困難': 1.3 };
+        return multipliers[this.difficulty];
+    }
+
+    getAIThresholdModifier() {
+        const modifiers = { '入門': 1, '標準': 0, '困難': -1 };
+        return modifiers[this.difficulty];
     }
 
     getFactionLabel(faction) {
@@ -151,9 +233,10 @@ class GameState {
     }
 
     startNewGame() {
+        this.showInitialHint = false; // 遊戲開始後不再顯示初始提示
         this.hands = 3;
         this.discards = 3;
-        this.money = 0;
+        this.money = this.difficulty === '入門' ? 200 : (this.difficulty === '標準' ? 100 : 50);
         this.selectedGenerals = [];
         this.maxSlots = 5;
         this.slotUpgradePrice = 500;
@@ -168,6 +251,10 @@ class GameState {
         this.xiahouDunBuffPending = false;
         this.drewAceThisRound = false;
         this.schemesUsedThisRound = false;
+        this.guanPingActive = false;
+        this.ganNingActive = false;
+        this.zhugeLiangActive = false;
+        this.firstHitDone = false;
         this.setScreen('START');
     }
 
@@ -240,7 +327,12 @@ class GameState {
 
     startBattle(enemyIndex = 1) {
         this.currentEnemy = dataManager.getEnemyByStage(enemyIndex);
-        this.enemyMorale = this.currentEnemy.morale;
+        const difficultyMultiplier = this.getDifficultyMultiplier();
+        // New: money target and rounds instead of morale
+        this.moneyTarget = Math.floor(this.currentEnemy.money_target * difficultyMultiplier);
+        this.maxRounds = this.currentEnemy.max_rounds;
+        this.battleMoney = 0;
+        this.currentRound = 0;
         // Reset hands and discards for each battle
         this.hands = 3;
         const fCounts = this.getFactionCounts();
@@ -256,9 +348,11 @@ class GameState {
 
     newRound() {
         this.currentScreen = 'BATTLE';
+        this.currentRound++;
         this.deck.reset();
         this.deck.shuffle();
-        this.playerHand.clear();
+        this.playerHands = [new Hand()];
+        this.currentHandIndex = 0;
         this.enemyHand.clear();
         this.selectedForDiscard.clear();
         this.hitsThisRound = 0;
@@ -270,9 +364,25 @@ class GameState {
         this.xiahouDunBuffActive = this.xiahouDunBuffPending || false;
         this.xiahouDunBuffPending = false;
 
+        // Reset skill tracking flags
+        this.guanPingActive = false;
+        this.ganNingActive = false;
+        this.zhugeLiangActive = false;
+        this.firstHitDone = false;
+
+        // Trigger "回合開始時" skills
+        this.selectedGenerals.forEach(g => {
+            if (g.skill_trigger === '回合開始時') {
+                if (g.id === 'zhu_ge_liang') {
+                    this.zhugeLiangActive = true;
+                    this.logs.push(this.translate('log.zhugeLiang'));
+                }
+            }
+        });
+
         // Initial deal
-        this.playerHand.addCard(this.deck.draw());
-        this.playerHand.addCard(this.deck.draw());
+        this.playerHands[0].addCard(this.deck.draw());
+        this.playerHands[0].addCard(this.deck.draw());
         this.enemyHand.addCard(this.deck.draw()); // Visible
         this.enemyHand.addCard(this.deck.draw()); // Hidden
 
@@ -285,9 +395,28 @@ class GameState {
         if (this.turn !== 'PLAYER' || this.hitsThisRound >= this.hitLimit) return;
 
         const card = this.deck.draw();
-        this.playerHand.addCard(card);
+        this.currentHand().addCard(card);
         this.hitsThisRound++;
         if (card.rank === 'A') this.drewAceThisRound = true;
+
+        // Trigger "要牌時" skills
+        this.selectedGenerals.forEach(g => {
+            if (g.skill_trigger === '要牌時') {
+                if (g.id === 'guan_ping') {
+                    if (card.rank === 'A') {
+                        this.guanPingActive = true;
+                        this.logs.push(this.translate('log.guanPing'));
+                    }
+                } else if (g.id === 'gan_ning') {
+                    if (!this.firstHitDone) {
+                        this.ganNingActive = true;
+                        this.logs.push(this.translate('log.ganNing'));
+                    }
+                }
+            }
+        });
+        this.firstHitDone = true;
+
         this.logs.push(this.translate('log.drewCard', { card: card.toString(), current: this.hitsThisRound, limit: this.hitLimit }));
         this.render();
     }
@@ -298,7 +427,7 @@ class GameState {
         this.hands--; // Always consume a hand count when playing
 
         // Play Hand (出牌) now performs the bust check
-        if (this.playerHand.isBust()) {
+        if (this.currentHand().isBust()) {
             this.logs.push(this.translate('log.bust'));
             this.resolveTurn();
         } else {
@@ -306,6 +435,70 @@ class GameState {
             this.resolveEnemyTurn();
         }
     }
+
+    // Get current active hand
+    currentHand() {
+        return this.playerHands[this.currentHandIndex];
+    }
+
+    // Stand: end turn for current hand
+    playerStand() {
+        if (this.turn !== 'PLAYER') return;
+
+        this.currentHand().stand();
+
+        // Check if there are more hands to play (after split)
+        if (this.currentHandIndex < this.playerHands.length - 1) {
+            this.currentHandIndex++;
+            this.logs.push(this.translate('log.nextHand', { index: this.currentHandIndex + 1 }));
+            this.render();
+        } else {
+            // All hands played, move to enemy turn
+            this.turn = 'ENEMY';
+            this.resolveEnemyTurn();
+        }
+    }
+
+    // Double Down: double bet and draw exactly one card
+    playerDoubleDown() {
+        if (this.turn !== 'PLAYER') return;
+
+        const hand = this.currentHand();
+        if (!hand.canDoubleDown()) {
+            this.logs.push(this.translate('log.cannotDoubleDown'));
+            return;
+        }
+
+        const card = this.deck.draw();
+        hand.doubleDown(card);
+        this.logs.push(this.translate('log.doubleDown', { card: card.toString() }));
+
+        // After double down, automatically stand
+        this.playerStand();
+    }
+
+    // Split: split pair into two hands
+    playerSplit() {
+        if (this.turn !== 'PLAYER') return;
+
+        const hand = this.currentHand();
+        if (!hand.canSplit()) {
+            this.logs.push(this.translate('log.cannotSplit'));
+            return;
+        }
+
+        const newHands = splitHand(hand, this.deck);
+        if (newHands) {
+            this.playerHands = [
+                ...this.playerHands.slice(0, this.currentHandIndex),
+                ...newHands,
+                ...this.playerHands.slice(this.currentHandIndex + 1)
+            ];
+            this.logs.push(this.translate('log.splitSuccess'));
+            this.render();
+        }
+    }
+
 
     toggleCardSelection(index) {
         if (this.turn !== 'PLAYER') return;
@@ -322,7 +515,7 @@ class GameState {
 
         const indices = Array.from(this.selectedForDiscard).sort((a, b) => b - a);
         indices.forEach(idx => {
-            this.playerHand.cards.splice(idx, 1);
+            this.currentHand().cards.splice(idx, 1);
         });
 
         this.discards--;
@@ -366,7 +559,8 @@ class GameState {
             await new Promise(r => setTimeout(r, 1000));
         } else {
             // Simple delay for "thinking"
-            while (AIEngine.shouldHit(this.currentEnemy, this.enemyHand, this.playerHand)) {
+            const difficultyModifier = this.getAIThresholdModifier();
+            while (AIEngine.shouldHit(this.currentEnemy, this.enemyHand, this.playerHand, difficultyModifier)) {
                 await new Promise(r => setTimeout(r, 800));
                 const card = this.deck.draw();
                 this.enemyHand.addCard(card);
@@ -384,19 +578,30 @@ class GameState {
 
     resolveTurn() {
         this.turn = 'PLAYER';
-        const pPoints = this.playerHand.getPoints();
+        const pPoints = this.currentHand().getPoints();
         const ePoints = this.enemyHand.getPoints();
 
         const breakdown = {
             base: 0,
             skills: [],
             total: 0,
-            isBlackjack: this.playerHand.isBlackjack(),
+            isBlackjack: this.currentHand().isBlackjack(),
             result: 'DRAW'
         };
 
         const additive = [];
         const multipliers = [];
+
+        // Apply tracked skill effects from "要牌時" and "回合開始時" triggers
+        if (this.guanPingActive && this.selectedGenerals.some(g => g.id === 'guan_ping')) {
+            additive.push({ name: '關平(隨父從征)', value: 75, type: '加法' });
+        }
+        if (this.ganNingActive && this.selectedGenerals.some(g => g.id === 'gan_ning')) {
+            additive.push({ name: '甘寧(奇襲)', value: 90, type: '加法' });
+        }
+        if (this.zhugeLiangActive && !this.currentHand().isBust() && this.selectedGenerals.some(g => g.id === 'zhu_ge_liang')) {
+            multipliers.push({ name: '諸葛亮(觀星)', value: 2.2, type: '乘法' });
+        }
 
         this.selectedGenerals.forEach(g => {
             const isSettlement = g.skill_trigger === '結算時';
@@ -432,18 +637,18 @@ class GameState {
                     } else if (cond === '玩家要牌次數 ≥ 2') {
                         if (this.hitsThisRound >= 2) shouldApply = true;
                     } else if (cond === '玩家手牌數為 2 張') {
-                        if (this.playerHand.cards.length === 2) shouldApply = true;
+                        if (this.currentHand().cards.length === 2) shouldApply = true;
                     } else if (cond === '玩家手牌數 ≥ 4 張') {
-                        if (this.playerHand.cards.length >= 4) shouldApply = true;
+                        if (this.currentHand().cards.length >= 4) shouldApply = true;
                     } else if (cond === '本回合要牌得到 A 則結算時額外加上') {
                         if (this.drewAceThisRound) shouldApply = true;
                     } else if (cond === '手牌中至少 2 張同花色') {
-                        const suits = this.playerHand.cards.map(c => c.suit);
+                        const suits = this.currentHand().cards.map(c => c.suit);
                         const counts = {};
                         suits.forEach(s => counts[s] = (counts[s] || 0) + 1);
                         if (Object.values(counts).some(c => c >= 2)) shouldApply = true;
                     } else if (cond === '手牌中有 3 張以上同花色') {
-                        const suits = this.playerHand.cards.map(c => c.suit);
+                        const suits = this.currentHand().cards.map(c => c.suit);
                         const counts = {};
                         suits.forEach(s => counts[s] = (counts[s] || 0) + 1);
                         if (Object.values(counts).some(c => c >= 3)) shouldApply = true;
@@ -478,7 +683,7 @@ class GameState {
 
         const fCounts = this.getFactionCounts();
         if (fCounts['吳'] >= 3) {
-            const suits = this.playerHand.cards.map(c => c.suit);
+            const suits = this.currentHand().cards.map(c => c.suit);
             const counts = {};
             suits.forEach(s => counts[s] = (counts[s] || 0) + 1);
             if (Object.values(counts).some(c => c >= 3)) {
@@ -490,8 +695,9 @@ class GameState {
             additive.push({ name: '群雄羈絆', value: 50 + variance, type: '加法' });
         }
 
-        const damageResult = CombatEngine.calculateDamage(
+        const moneyResult = CombatEngine.calculateMoney(
             pPoints, ePoints, breakdown.isBlackjack,
+            1, // betMultiplier (can be enhanced for double down)
             additive.map(a => a.value),
             multipliers.map(m => m.value)
         );
@@ -503,23 +709,42 @@ class GameState {
         if (pPoints > 21) {
             breakdown.result = 'BUST';
             this.bustThisRound = true;
+            // Bust: lose current bet (no money gained)
             if (this.selectedGenerals.some(g => g.id === 'xia_hou_dun')) {
                 this.xiahouDunBuffPending = true;
                 this.logs.push(this.translate('log.xiahouDun'));
             }
-        } else if (ePoints > 21 || pPoints > ePoints || pPoints === 21) {
-            breakdown.result = 'WIN';
-            const multiplier = 10 + (21 - pPoints);
-            breakdown.base = (pPoints * multiplier) + pPoints;
-            breakdown.skills = [...additive, ...multipliers];
-            breakdown.total = damageResult;
-            this.enemyMorale -= damageResult;
 
-            // Grant money equal to damage
-            this.money += damageResult;
-            this.logs.push(this.translate('log.moneyAwarded', { amount: damageResult }));
+            // 蜀軍羈絆：反擊（爆牌也算輸）
+            const shuCount = fCounts['蜀'] || 0;
+            if (shuCount >= 3) {
+                const counterDamage = 30 + (shuCount - 3) * 10;
+                this.enemyMorale -= counterDamage;
+                this.logs.push(this.translate('log.shuCounter', { damage: counterDamage }));
+            }
+        } else if (ePoints > 21 || pPoints > ePoints || pPoints === 21) {
+            breakdown.result = moneyResult.result;
+            breakdown.money = moneyResult.money;
+            breakdown.base = moneyResult.baseMoney || moneyResult.money;
+            breakdown.skills = [...additive.map(a => ({ name: a.name, type: a.type, value: a.value })),
+                                ...multipliers.map(m => ({ name: m.name, type: m.type, value: m.value }))];
+            breakdown.total = moneyResult.money;
+            this.battleMoney += moneyResult.money;
+            this.money += moneyResult.money;
+
+            if (moneyResult.money > 0) {
+                this.logs.push(this.translate('log.moneyAwarded', { amount: moneyResult.money }));
+            }
         } else if (pPoints < ePoints) {
             breakdown.result = 'LOSE';
+            // Lose: no money gained
+        }
+
+        // 天時難度：敵將有 25% 機率在結算時獲得額外 1.2x 倍率（僅敵將勝利時）
+        if (this.difficulty === '困難' && (breakdown.result === 'BUST' || breakdown.result === 'LOSE') && Math.random() < 0.25) {
+            const enemyExtraDamage = Math.floor(20 * 1.2);
+            this.money = Math.max(0, this.money - enemyExtraDamage);
+            this.logs.push(this.translate('log.tianshiEnemyBuff', { damage: enemyExtraDamage }));
         }
 
         this.showSettlement(breakdown);
@@ -532,7 +757,11 @@ class GameState {
     }
 
     showRewardScreen() {
-        if (this.enemyMorale > 0) return; // Must defeat enemy to get rewards
+        // Check if player achieved the money goal within max rounds
+        const goalCheck = CombatEngine.checkStageGoal(
+            this.battleMoney, this.moneyTarget, this.currentRound, this.maxRounds
+        );
+        if (!goalCheck.achieved) return; // Must achieve goal to get rewards
 
         // Track this defeated enemy
         if (!this.defeatedEnemies.includes(this.currentEnemy.name)) {
@@ -688,10 +917,13 @@ class GameState {
                      <div id="left-bar">
                          ${this.currentEnemy ? `
                          <div class="stat-box enemy-stat" style="margin-bottom: 15px;">
-                            <div style="font-size: 0.8rem; color: #888; margin-bottom: 5px;">${this.translate('ui.stageBattle', { stage: this.currentEnemy.stage_index })}</div>
+                            <div style="font-size: 0.8rem; color: #888; margin-bottom: 5px;">
+                            ${this.translate('ui.stageBattle', { stage: this.currentEnemy.stage_index })} |
+                            ${this.translate('ui.roundInfo', { current: this.currentRound, max: this.maxRounds })}
+                        </div>
                             <h3 style="font-size: 1rem; color: var(--gold-bright);">${this.translate('ui.target', { name: this.currentEnemy.name })}</h3>
-                            <progress value="${this.currentEnemy.morale - Math.max(0, this.enemyMorale)}" max="${this.currentEnemy.morale}" class="side-progress"></progress>
-                            <div class="score-display" style="font-size: 0.9rem; margin-top: 5px; color: var(--gold-bright);">${Math.max(0, this.currentEnemy.morale - Math.max(0, this.enemyMorale))} / ${this.currentEnemy.morale}</div>
+                            <progress value="${this.moneyTarget - Math.max(0, this.enemyMorale)}" max="${this.moneyTarget}" class="side-progress"></progress>
+                            <div class="score-display" style="font-size: 0.9rem; margin-top: 5px; color: var(--gold-bright);">${Math.max(0, this.moneyTarget - Math.max(0, this.enemyMorale))} / ${this.moneyTarget}</div>
                         </div>
                         ` : ''}
                         <div class="stat-box">
@@ -719,6 +951,7 @@ class GameState {
 
     renderCurrentView() {
         if (this.currentScreen === 'START') return this.renderTitleHTML();
+        if (this.currentScreen === 'SETTINGS') return this.renderSettingsHTML();
         if (this.currentScreen === 'BATTLE' || this.currentScreen === 'SETTLEMENT') return this.renderBattleHTML();
         return '';
     }
@@ -726,29 +959,37 @@ class GameState {
     renderTitleHTML() {
         return `
             <div class="title-screen">
-                <div style="display: flex; justify-content: center; margin-bottom: 24px;">
-                    <label style="display: flex; flex-direction: column; gap: 8px; color: #aaa; font-size: 0.9rem; align-items: flex-start;">
-                        <span>${this.translate('ui.language')}</span>
-                        <select onchange="game.setLocale(this.value)" style="min-width: 220px; padding: 10px 12px; border-radius: 8px; background: rgba(20,20,20,0.85); color: #eee; border: 1px solid rgba(212,175,55,0.35);">
-                            <option value="zh-TW" ${this.locale === 'zh-TW' ? 'selected' : ''}>${this.translate('ui.languageOptionZhTW')}</option>
-                            <option value="zh-CN" ${this.locale === 'zh-CN' ? 'selected' : ''}>${this.translate('ui.languageOptionZhCN')}</option>
-                            <option value="en" ${this.locale === 'en' ? 'selected' : ''}>${this.translate('ui.languageOptionEn')}</option>
-                        </select>
-                        <span style="font-size: 0.8rem; color: #666;">${this.translate('ui.languageAutoHint')}</span>
-                    </label>
-                </div>
-                <h1 style="font-size: 4rem; color: var(--gold); margin-bottom: 20px;">三國派</h1>
-                <p style="font-size: 1.2rem; color: #aaa; margin-bottom: 40px; font-style: italic;">
-                    ${this.translate('ui.subtitle')}
-                </p>
-                <div class="title-actions" style="display: flex; gap: 20px; justify-content: center;">
-                    <button onclick="game.startNewGame(); game.startBattle(1)" style="font-size: 1.5rem; padding: 15px 60px; background: var(--accent-red);">
-                        ${this.translate('ui.startGame')}
-                    </button>
+                <div class="title-hero-art" data-hero="diao_chan_sexy_pixel_3.png" aria-hidden="true"></div>
+                <div class="title-backdrop-glow" aria-hidden="true"></div>
+                <div class="title-copy">
+                    <div class="title-kicker">Roguelike Card Duel</div>
+                    <img src="./assets/UI/Title_SC.png" alt="三國派" class="title-logo pixel-art" style="image-rendering: pixelated; image-rendering: crisp-edges; max-width: 300px; width: 80%; height: auto; margin: 20px auto; display: block; filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));">
+                    <p class="title-subtitle">
+                        ${this.translate('ui.subtitle')}
+                    </p>
+                    <div class="title-actions">
+                        <button class="title-start-button" onclick="game.startNewGame(); game.startBattle(1)">
+                            ${this.translate('ui.startGame')}
+                        </button>
+                        <button class="title-start-button" onclick="game.showSettings()" style="background: transparent; border: 2px solid var(--gold); color: var(--gold);">
+                            ${this.translate('ui.settings')}
+                        </button>
+                    </div>
+                    ${this.showInitialHint ? `
+                    <div class="title-hint" id="initial-hint">
+                        ${this.translate('ui.titleHint')}
+                    </div>
+                    <script>
+                        setTimeout(() => {
+                            const hint = document.getElementById('initial-hint');
+                            if (hint) hint.style.opacity = '0';
+                        }, 5000);
+                    </script>
+                    ` : ''}
                 </div>
 
                 ${this.leaderboard.length > 0 ? `
-                    <div class="leaderboard-area" style="margin-top: 40px; width: 80%; max-width: 600px;">
+                    <div class="leaderboard-area title-leaderboard">
                         <h2 style="color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 5px;">${this.translate('ui.leaderboard')}</h2>
                         <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem;">
                             <thead>
@@ -770,10 +1011,6 @@ class GameState {
                         </table>
                     </div>
                 ` : ''}
-
-                <div class="title-hint" style="margin-top: 60px; color: #666; font-size: 0.9rem;">
-                    ${this.translate('ui.titleHint')}
-                </div>
             </div>
         `;
     }
@@ -796,7 +1033,7 @@ class GameState {
                 </div>
 
                 <div class="hand-row player-hand">
-                    ${this.playerHand.cards.map((c, i) => `
+                    ${this.currentHand().cards.map((c, i) => `
                         <div class="playing-card ${this.selectedForDiscard.has(i) ? 'selected' : ''}" 
                              onclick="game.toggleCardSelection(${i})">
                             ${c.toString()}
@@ -805,12 +1042,23 @@ class GameState {
                 </div>
 
                 <div class="action-row">
-                    <div class="point-bubble" style="${this.playerHand.isBust() ? 'color: #ff4d4d; border: 2px solid #ff4d4d;' : ''}">
-                        ${this.translate('ui.pointsUnit', { value: this.playerHand.getPoints() })}
+                    <div class="point-bubble" style="${this.currentHand().isBust() ? 'color: #ff4d4d; border: 2px solid #ff4d4d;' : ''}">
+                        ${this.translate('ui.pointsUnit', { value: this.currentHand().getPoints() })}
                     </div>
-                    <button onclick="game.playerHit()" ${this.turn !== 'PLAYER' || this.hitsThisRound >= this.hitLimit ? 'disabled' : ''}>
-                        ${this.translate('ui.hit', { current: this.hitsThisRound, limit: this.hitLimit })}
-                    </button>
+                    <div class="action-buttons">
+                        <button onclick="game.playerHit()" ${this.turn !== 'PLAYER' || this.hitsThisRound >= this.hitLimit || this.currentHand().isStand ? 'disabled' : ''}>
+                            ${this.translate('ui.hit', { current: this.hitsThisRound, limit: this.hitLimit })}
+                        </button>
+                        <button onclick="game.playerStand()" ${this.turn !== 'PLAYER' || this.currentHand().isStand ? 'disabled' : ''}>
+                            ${this.translate('ui.stand')}
+                        </button>
+                        <button onclick="game.playerDoubleDown()" ${this.turn !== 'PLAYER' || !this.currentHand().canDoubleDown() ? 'disabled' : ''}>
+                            ${this.translate('ui.doubleDown')}
+                        </button>
+                        <button onclick="game.playerSplit()" ${this.turn !== 'PLAYER' || !this.currentHand().canSplit() ? 'disabled' : ''}>
+                            ${this.translate('ui.split')}
+                        </button>
+                    </div>
                     <button onclick="game.playerPlayHand()" ${this.turn !== 'PLAYER' ? 'disabled' : ''} style="background: var(--gold); color: #000;">
                         ${this.translate('ui.playHand', { hands: this.hands })}
                     </button>
@@ -963,7 +1211,7 @@ class GameState {
             <div class="settlement-hand">
                 <span>${this.translate('ui.yourHand')}</span>
                 <div class="hand-row mini">
-                    ${this.playerHand.cards.map(c => `<div class="playing-card mini">${c.toString()}</div>`).join('')}
+                    ${this.currentHand().cards.map(c => `<div class="playing-card mini">${c.toString()}</div>`).join('')}
                 </div>
             </div>
         `;
@@ -988,9 +1236,8 @@ class GameState {
         let resultTitle = '';
         let resultBody = '';
 
-        if (b.result === 'WIN') {
+        if (b.result === 'WIN' || b.result === 'BLACKJACK') {
             const currentMultiplier = 10 + (21 - b.pPoints);
-            const baseValue = b.pPoints * currentMultiplier;
             const calcStr = this.translate('ui.baseRewardFormula', { points: b.pPoints, multiplier: currentMultiplier });
             resultTitle = `<h2 class="win">${b.isBlackjack ? this.translate('ui.blackjackTitle') : this.translate('ui.winTitle')}</h2>`;
             resultBody = `
@@ -998,7 +1245,7 @@ class GameState {
                     ${pointsHTML}
                     <div class="calc-formula" style="color: var(--gold-bright); font-size: 1.1rem; border: 1px dashed rgba(212,175,55,0.3); padding: 10px; border-radius: 8px;">
                         <div style="font-size: 0.9rem; color: #888; margin-bottom: 5px;">${this.translate('ui.lowerWinBetter')}</div>
-                        ${calcStr} = ${b.base}
+                        ${calcStr} = ${b.base + b.pPoints}
                     </div>
                     <hr>
                     <div class="skill-list">
@@ -1007,8 +1254,8 @@ class GameState {
                     <hr>
                     <h3 class="total-score">${this.translate('ui.totalScore', { total: b.total })}</h3>
                 </div>
-                <button onclick="${this.enemyMorale <= 0 ? 'game.showRewardScreen()' : 'game.newRound()'}">
-                    ${this.enemyMorale <= 0 ? this.translate('ui.claimReward') : this.translate('ui.nextRound')}
+                <button onclick="${this.battleMoney >= this.moneyTarget ? 'game.showRewardScreen()' : 'game.newRound()'}">
+                    ${this.battleMoney >= this.moneyTarget ? this.translate('ui.claimReward') : this.translate('ui.nextRound')}
                 </button>
             `;
         } else if (b.result === 'BUST') {
@@ -1115,31 +1362,36 @@ class GameState {
 
 // Global instance for simple HTML onclicks for the prototype
 const game = new GameState();
-window.game = game;
-game.claimRewardById = (id) => game.claimReward(dataManager.getGeneralById(id) || dataManager.getSchemeById(id) || dataManager.getRelicById(id));
 
-window.addEventListener('DOMContentLoaded', () => {
-    game.init();
-});
-// Auto-scaling for web deployment
-function handleResize() {
-    const container = document.getElementById('game-container');
-    if (!container) return;
+if (typeof window !== 'undefined') {
+    window.game = game;
+    game.claimRewardById = (id) => game.claimReward(dataManager.getGeneralById(id) || dataManager.getSchemeById(id) || dataManager.getRelicById(id));
 
-    const targetWidth = 1280;
-    const targetHeight = 720;
-    const padding = 40;
+    window.addEventListener('DOMContentLoaded', () => {
+        game.init();
+    });
 
-    const scaleX = (window.innerWidth - padding) / targetWidth;
-    const scaleY = (window.innerHeight - padding) / targetHeight;
-    const scale = Math.min(scaleX, scaleY, 1); // Never upscale beyond 1
+    // Auto-scaling for web deployment
+    function handleResize() {
+        const container = document.getElementById('game-container');
+        if (!container) return;
 
-    container.style.transform = `scale(${scale})`;
-    container.style.transformOrigin = 'center center';
+        const targetWidth = 1280;
+        const targetHeight = 720;
+        const padding = 40;
+
+        const scaleX = (window.innerWidth - padding) / targetWidth;
+        const scaleY = (window.innerHeight - padding) / targetHeight;
+        const scale = Math.min(scaleX, scaleY, 1); // Never upscale beyond 1
+
+        container.style.transform = `scale(${scale})`;
+        container.style.transformOrigin = 'center center';
+    }
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('load', handleResize);
+    handleResize();
 }
 
-window.addEventListener('resize', handleResize);
-window.addEventListener('load', handleResize);
-handleResize();
-
+export { GameState };
 export default game;
