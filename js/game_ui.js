@@ -444,11 +444,18 @@ class GameState {
     playerPlayHand() {
         if (this.turn !== 'PLAYER' || this.hands <= 0) return;
 
-        // Check if all hands are ready (stood or bust)
-        const allHandsReady = this.playerHands.every(h => h.isStand || h.isBust());
-        if (!allHandsReady) {
-            this.logs.push('請先完成所有手牌的操作（停牌或爆牌）');
-            return;
+        // Auto-stand current hand before playing
+        if (!this.currentHand().isStand && !this.currentHand().isBust()) {
+            this.currentHand().stand();
+        }
+
+        // For split hands, check if all hands are ready
+        if (this.playerHands.length > 1) {
+            const allHandsReady = this.playerHands.every(h => h.isStand || h.isBust());
+            if (!allHandsReady) {
+                this.logs.push('請先完成所有手牌的操作（點擊另一手牌切換）');
+                return;
+            }
         }
 
         this.hands--; // Consume hand count
