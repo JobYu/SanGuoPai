@@ -1049,9 +1049,11 @@ class GameState {
                         <button onclick="game.playerHit()" ${this.turn !== 'PLAYER' || this.hitsThisRound >= this.hitLimit || this.currentHand().isStand ? 'disabled' : ''}>
                             ${this.translate('ui.hit', { current: this.hitsThisRound, limit: this.hitLimit })}
                         </button>
+                        ${this.playerHands.length > 1 ? `
                         <button onclick="game.playerStand()" ${this.turn !== 'PLAYER' || this.currentHand().isStand ? 'disabled' : ''}>
                             ${this.translate('ui.stand')}
                         </button>
+                        ` : ''}
                         <button onclick="game.playerDoubleDown()" ${this.turn !== 'PLAYER' || !this.currentHand().canDoubleDown() ? 'disabled' : ''}>
                             ${this.translate('ui.doubleDown')}
                         </button>
