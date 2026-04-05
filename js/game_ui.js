@@ -424,16 +424,18 @@ class GameState {
     playerPlayHand() {
         if (this.turn !== 'PLAYER' || this.hands <= 0) return;
 
-        this.hands--; // Always consume a hand count when playing
-
-        // Play Hand (出牌) now performs the bust check
-        if (this.currentHand().isBust()) {
-            this.logs.push(this.translate('log.bust'));
-            this.resolveTurn();
-        } else {
-            this.turn = 'ENEMY';
-            this.resolveEnemyTurn();
+        // Check if all hands are ready (stood or bust)
+        const allHandsReady = this.playerHands.every(h => h.isStand || h.isBust());
+        if (!allHandsReady) {
+            this.logs.push('請先完成所有手牌的操作（停牌或爆牌）');
+            return;
         }
+
+        this.hands--; // Consume hand count
+
+        // Play all hands against enemy
+        this.turn = 'ENEMY';
+        this.resolveEnemyTurn();
     }
 
     // Get current active hand
@@ -444,8 +446,13 @@ class GameState {
     // Switch to a specific hand (for split hands)
     switchToHand(index) {
         if (index >= 0 && index < this.playerHands.length && this.turn === 'PLAYER') {
+            // Auto-stand current hand before switching
+            if (!this.currentHand().isStand && !this.currentHand().isBust()) {
+                this.currentHand().stand();
+            }
             this.currentHandIndex = index;
             this.selectedForDiscard.clear();
+            this.logs.push(`切換到第 ${index + 1} 手牌`);
             this.render();
         }
     }
