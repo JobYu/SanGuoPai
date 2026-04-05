@@ -473,10 +473,6 @@ class GameState {
     // Switch to a specific hand (for split hands)
     switchToHand(index) {
         if (index >= 0 && index < this.playerHands.length && this.turn === 'PLAYER') {
-            // Auto-stand current hand before switching
-            if (!this.currentHand().isStand && !this.currentHand().isBust()) {
-                this.currentHand().stand();
-            }
             this.currentHandIndex = index;
             this.selectedForDiscard.clear();
             this.logs.push(`切換到第 ${index + 1} 手牌`);
@@ -1104,6 +1100,11 @@ class GameState {
                         <button onclick="game.playerHit()" ${this.turn !== 'PLAYER' || this.hitsThisRound >= this.hitLimit || this.currentHand().isStand ? 'disabled' : ''}>
                             ${this.translate('ui.hit', { current: this.hitsThisRound, limit: this.hitLimit })}
                         </button>
+                        ${this.playerHands.length > 1 ? `
+                        <button onclick="game.playerStand()" ${this.turn !== 'PLAYER' || this.currentHand().isStand ? 'disabled' : ''}>
+                            ${this.translate('ui.stand')}
+                        </button>
+                        ` : ''}
                         <button onclick="game.playerDoubleDown()" ${this.turn !== 'PLAYER' || !this.currentHand().canDoubleDown() ? 'disabled' : ''}>
                             ${this.translate('ui.doubleDown')}
                         </button>
