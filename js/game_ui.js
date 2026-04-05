@@ -78,6 +78,26 @@ class GameState {
         return null;
     }
 
+    // Render card with corner ranks (poker style) for split hands
+    renderCornerCard(card, cardIndex, handIndex) {
+        const isSelected = this.selectedForDiscard.has(cardIndex) && handIndex === this.currentHandIndex;
+        const isRed = card.suit === '♥' || card.suit === '♦';
+        const color = isRed ? '#d00' : '#111';
+
+        return `
+            <div class="playing-card corner-style ${isSelected ? 'selected' : ''}" style="color: ${color};">
+                <div class="card-corner-top">
+                    <span>${card.rank}</span>
+                    <span>${card.suit}</span>
+                </div>
+                <div class="card-corner-bottom">
+                    <span>${card.rank}</span>
+                    <span>${card.suit}</span>
+                </div>
+            </div>
+        `;
+    }
+
     translate(key, vars = {}) {
         return this.t(key, vars);
     }
@@ -1053,11 +1073,7 @@ class GameState {
                     ${this.playerHands.map((hand, idx) => `
                         <div class="hand-row player-hand ${idx === this.currentHandIndex ? 'active-hand' : 'inactive-hand'}"
                              onclick="game.switchToHand(${idx})">
-                            ${hand.cards.map((c, i) => `
-                                <div class="playing-card ${this.selectedForDiscard.has(i) && idx === this.currentHandIndex ? 'selected' : ''}">
-                                    ${c.toString()}
-                                </div>
-                            `).join('')}
+                            ${hand.cards.map((c, i) => this.renderCornerCard(c, i, idx)).join('')}
                             <div class="hand-points">${hand.getPoints()} ${hand.isStand ? '(停牌)' : ''}</div>
                         </div>
                     `).join('')}

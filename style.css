@@ -603,20 +603,23 @@ button:disabled {
     transition: opacity 1s ease-out;
 }
 
-/* Split hands display */
+/* Split hands display - horizontal layout */
 .split-hands-container {
     display: flex;
-    flex-direction: column;
-    gap: 15px;
+    flex-direction: row;
+    justify-content: center;
+    gap: 30px;
     margin: 10px 0;
+    flex-wrap: wrap;
 }
 
 .split-hands-container .hand-row {
     position: relative;
-    padding: 10px;
+    padding: 10px 40px 10px 10px;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
+    min-width: 200px;
 }
 
 .split-hands-container .active-hand {
@@ -636,6 +639,15 @@ button:disabled {
     opacity: 0.9;
 }
 
+/* Overlapping cards in split hands */
+.split-hands-container .hand-row .playing-card {
+    margin-left: -40px;
+}
+
+.split-hands-container .hand-row .playing-card:first-child {
+    margin-left: 0;
+}
+
 .hand-points {
     position: absolute;
     right: 10px;
@@ -645,6 +657,37 @@ button:disabled {
     font-size: 1.2rem;
     font-weight: bold;
     text-align: left;
+}
+
+/* Card with corner ranks (poker style) */
+.playing-card.corner-style {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+}
+
+.playing-card.corner-style .card-corner-top {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 1.4rem;
+    line-height: 1;
+}
+
+.playing-card.corner-style .card-corner-bottom {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 1.4rem;
+    line-height: 1;
+    transform: rotate(180deg);
 }
 
 @media (max-width: 900px) {
