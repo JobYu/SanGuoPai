@@ -18,6 +18,10 @@ class Card {
     toString() {
         return `${this.suit}${this.rank}`;
     }
+
+    clone() {
+        return new Card(this.suit, this.rank);
+    }
 }
 
 class Deck {
@@ -52,8 +56,11 @@ class Deck {
 }
 
 class Hand {
-    constructor() {
+    constructor(betMultiplier = 1) {
         this.cards = [];
+        this.betMultiplier = betMultiplier; // 1 for normal, 2 for double down
+        this.isDoubleDown = false;
+        this.isStand = false;
     }
 
     addCard(card) {
@@ -86,9 +93,61 @@ class Hand {
         return this.cards.length === 2 && this.getPoints() === 21;
     }
 
+    canSplit() {
+        // Can split if exactly 2 cards and they have the same rank
+        if (this.cards.length !== 2) return false;
+        return this.cards[0].rank === this.cards[1].rank;
+    }
+
+    canDoubleDown() {
+        // Can double down on first two cards only
+        return this.cards.length === 2 && !this.isDoubleDown;
+    }
+
+    doubleDown(card) {
+        // Double the bet and draw exactly one card
+        this.betMultiplier = 2;
+        this.isDoubleDown = true;
+        this.addCard(card);
+        this.isStand = true; // Must stand after double down
+    }
+
+    stand() {
+        this.isStand = true;
+    }
+
     clear() {
         this.cards = [];
+        this.betMultiplier = 1;
+        this.isDoubleDown = false;
+        this.isStand = false;
+    }
+
+    clone() {
+        const newHand = new Hand(this.betMultiplier);
+        newHand.cards = this.cards.map(c => c.clone());
+        newHand.isDoubleDown = this.isDoubleDown;
+        newHand.isStand = this.isStand;
+        return newHand;
     }
 }
 
-export { Deck, Hand, Card, SUITS, RANKS };
+// Split helper: splits a hand into two hands
+function splitHand(hand, deck) {
+    if (!hand.canSplit()) return null;
+
+    const card1 = hand.cards[0].clone();
+    const card2 = hand.cards[1].clone();
+
+    const hand1 = new Hand(hand.betMultiplier);
+    hand1.addCard(card1);
+    hand1.addCard(deck.draw());
+
+    const hand2 = new Hand(hand.betMultiplier);
+    hand2.addCard(card2);
+    hand2.addCard(deck.draw());
+
+    return [hand1, hand2];
+}
+
+export { Deck, Hand, Card, SUITS, RANKS, splitHand };
