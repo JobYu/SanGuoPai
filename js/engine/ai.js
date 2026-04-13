@@ -5,9 +5,9 @@ class AIEngine {
      * @param {Hand} enemyHand - Current AI hand
      * @param {Hand} playerHand - Current Player hand (to check visibility)
      */
-    static shouldHit(enemyData, enemyHand, playerHand) {
+    static shouldHit(enemyData, enemyHand, playerHand, difficultyModifier = 0) {
         const currentPoints = enemyHand.getPoints();
-        const threshold = enemyData.ai_stand_threshold;
+        const threshold = enemyData.ai_stand_threshold + difficultyModifier;
         const tendency = enemyData.ai_tendency; // 莽撞, 穩健, 狡詐
 
         // Mandatory hit if below threshold (usually 17 as per GDD)

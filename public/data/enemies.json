@@ -1,12 +1,13 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "2.0",
   "enemies": [
     {
       "id": "cheng_yuan_zhi",
       "name": "程遠志",
       "campaign": "黃巾之亂",
       "stage_index": 1,
-      "morale": 100,
+      "money_target": 100,
+      "max_rounds": 3,
       "ai_stand_threshold": 18,
       "ai_tendency": "莽撞",
       "flavour": "劉關張首戰，黃巾先鋒。"
@@ -16,7 +17,8 @@
       "name": "鄧茂",
       "campaign": "黃巾之亂",
       "stage_index": 2,
-      "morale": 220,
+      "money_target": 220,
+      "max_rounds": 3,
       "ai_stand_threshold": 18,
       "ai_tendency": "莽撞",
       "flavour": "程遠志副將，同回被斬。"
@@ -26,7 +28,8 @@
       "name": "高昇",
       "campaign": "黃巾之亂",
       "stage_index": 3,
-      "morale": 400,
+      "money_target": 400,
+      "max_rounds": 4,
       "ai_stand_threshold": 17,
       "ai_tendency": "穩健",
       "flavour": "張寶部將。"
@@ -36,7 +39,8 @@
       "name": "嚴政",
       "campaign": "黃巾之亂",
       "stage_index": 4,
-      "morale": 500,
+      "money_target": 500,
+      "max_rounds": 4,
       "ai_stand_threshold": 17,
       "ai_tendency": "穩健",
       "flavour": "黃巾將領。"
@@ -46,7 +50,8 @@
       "name": "張梁",
       "campaign": "黃巾之亂",
       "stage_index": 5,
-      "morale": 1500,
+      "money_target": 1500,
+      "max_rounds": 5,
       "ai_stand_threshold": 17,
       "ai_tendency": "穩健",
       "flavour": "地公將軍，黃巾要角。"
@@ -56,7 +61,8 @@
       "name": "張寶",
       "campaign": "黃巾之亂",
       "stage_index": 6,
-      "morale": 2500,
+      "money_target": 2500,
+      "max_rounds": 5,
       "ai_stand_threshold": 17,
       "ai_tendency": "穩健",
       "flavour": "人公將軍。"
@@ -66,7 +72,8 @@
       "name": "張角",
       "campaign": "黃巾之亂",
       "stage_index": 7,
-      "morale": 3000,
+      "money_target": 3000,
+      "max_rounds": 6,
       "ai_stand_threshold": 16,
       "ai_tendency": "狡詐",
       "flavour": "天公將軍，黃巾線階段 Boss。"
@@ -76,7 +83,8 @@
       "name": "胡軫",
       "campaign": "討伐董卓",
       "stage_index": 8,
-      "morale": 5000,
+      "money_target": 5000,
+      "max_rounds": 6,
       "ai_stand_threshold": 17,
       "ai_tendency": "穩健",
       "flavour": "董卓軍將領。"
@@ -86,7 +94,8 @@
       "name": "華雄",
       "campaign": "討伐董卓",
       "stage_index": 9,
-      "morale": 6000,
+      "money_target": 6000,
+      "max_rounds": 6,
       "ai_stand_threshold": 16,
       "ai_tendency": "狡詐",
       "flavour": "溫酒斬華雄前之敵將。"
@@ -96,7 +105,8 @@
       "name": "呂布",
       "campaign": "討伐董卓",
       "stage_index": 10,
-      "morale": 9000,
+      "money_target": 9000,
+      "max_rounds": 7,
       "ai_stand_threshold": 16,
       "ai_tendency": "狡詐",
       "flavour": "虎牢關，階段尾關 Boss。"
@@ -106,7 +116,8 @@
       "name": "董卓",
       "campaign": "討伐董卓",
       "stage_index": 11,
-      "morale": 12000,
+      "money_target": 12000,
+      "max_rounds": 7,
       "ai_stand_threshold": 15,
       "ai_tendency": "狡詐",
       "flavour": "討伐董卓戰役關底 Boss。"
@@ -116,7 +127,8 @@
       "name": "隨機群雄",
       "campaign": "群雄逐鹿",
       "stage_index": 12,
-      "morale": 30000,
+      "money_target": 30000,
+      "max_rounds": 8,
       "ai_stand_threshold": 16,
       "ai_tendency": "莽撞",
       "flavour": "群雄逐鹿戰役預留位。"
@@ -126,7 +138,8 @@
       "name": "袁紹部將",
       "campaign": "官渡之戰",
       "stage_index": 13,
-      "morale": 100000,
+      "money_target": 100000,
+      "max_rounds": 8,
       "ai_stand_threshold": 17,
       "ai_tendency": "穩健",
       "flavour": "官渡之戰戰役預留位。"
@@ -136,7 +149,8 @@
       "name": "東吳水軍",
       "campaign": "赤壁之戰",
       "stage_index": 14,
-      "morale": 500000,
+      "money_target": 500000,
+      "max_rounds": 9,
       "ai_stand_threshold": 16,
       "ai_tendency": "狡詐",
       "flavour": "赤壁之戰戰役預留位。"
@@ -146,7 +160,8 @@
       "name": "魏國守將",
       "campaign": "三國鼎立/北伐",
       "stage_index": 15,
-      "morale": 2000000,
+      "money_target": 2000000,
+      "max_rounds": 10,
       "ai_stand_threshold": 15,
       "ai_tendency": "狡詐",
       "flavour": "終極挑戰戰役預留位。"
