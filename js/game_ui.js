@@ -830,7 +830,8 @@ class GameState {
             const shuCount = fCounts['蜀'] || 0;
             if (shuCount >= 3) {
                 const counterDamage = 30 + (shuCount - 3) * 10;
-                this.enemyMorale -= counterDamage;
+                this.battleMoney += counterDamage;
+                this.money += counterDamage;
                 this.logs.push(this.translate('log.shuCounter', { damage: counterDamage }));
             }
         }
@@ -862,6 +863,29 @@ class GameState {
         this.currentScreen = 'SETTLEMENT';
         this.settlementData = breakdown;
         this.render();
+    }
+
+    /** 本關是否已無法達標（出牌次數用盡或回合已盡） */
+    isBattleLost() {
+        if (this.battleMoney >= this.moneyTarget) return false;
+        if (this.hands <= 0) return true;
+        const goal = CombatEngine.checkStageGoal(
+            this.battleMoney, this.moneyTarget, this.currentRound, this.maxRounds
+        );
+        return goal.reason === 'OUT_OF_ROUNDS';
+    }
+
+    /** 結算面板關閉後：領獎、下一回合或敗北 */
+    continueAfterSettlement() {
+        if (this.battleMoney >= this.moneyTarget) {
+            this.showRewardScreen();
+            return;
+        }
+        if (this.isBattleLost()) {
+            this.setScreen('BATTLE');
+            return;
+        }
+        this.newRound();
     }
 
     showRewardScreen() {
@@ -1030,8 +1054,8 @@ class GameState {
                             ${this.translate('ui.roundInfo', { current: this.currentRound, max: this.maxRounds })}
                         </div>
                             <h3 style="font-size: 1rem; color: var(--gold-bright);">${this.translate('ui.target', { name: this.currentEnemy.name })}</h3>
-                            <progress value="${this.moneyTarget - Math.max(0, this.enemyMorale)}" max="${this.moneyTarget}" class="side-progress"></progress>
-                            <div class="score-display" style="font-size: 0.9rem; margin-top: 5px; color: var(--gold-bright);">${Math.max(0, this.moneyTarget - Math.max(0, this.enemyMorale))} / ${this.moneyTarget}</div>
+                            <progress value="${this.battleMoney}" max="${this.moneyTarget || 1}" class="side-progress"></progress>
+                            <div class="score-display" style="font-size: 0.9rem; margin-top: 5px; color: var(--gold-bright);">${this.battleMoney} / ${this.moneyTarget}</div>
                         </div>
                         ` : ''}
                         <div class="stat-box">
@@ -1210,7 +1234,9 @@ class GameState {
         if (this.viewingGeneralDetail) return this.renderGeneralDetailModal();
         if (this.currentScreen === 'SETTLEMENT') return this.renderSettlementHTML();
         if (this.currentScreen === 'REWARD') return this.renderRewardHTML();
-        if (this.currentScreen === 'BATTLE' && this.turn === 'PLAYER' && this.hands <= 0 && this.enemyMorale > 0) return this.renderGameOverHTML();
+        if (this.currentScreen === 'BATTLE' && this.turn === 'PLAYER' && this.isBattleLost()) {
+            return this.renderGameOverHTML();
+        }
         return '';
     }
 
@@ -1383,7 +1409,7 @@ class GameState {
                     <hr>
                     <h3 class="total-score">總計獲得: $${totalMoney}</h3>
                 </div>
-                <button onclick="${this.battleMoney >= this.moneyTarget ? 'game.showRewardScreen()' : 'game.newRound()'}">
+                <button onclick="game.continueAfterSettlement()">
                     ${this.battleMoney >= this.moneyTarget ? this.translate('ui.claimReward') : this.translate('ui.nextRound')}
                 </button>
             `;
@@ -1397,8 +1423,8 @@ class GameState {
                     </div>
                     <p>${this.translate('ui.handConsumed', { hands: this.hands })}</p>
                 </div>
-                <button onclick="${this.hands > 0 ? 'game.newRound()' : 'game.setScreen(\'BATTLE\')'}">
-                    ${this.hands > 0 ? this.translate('ui.nextRound') : this.translate('ui.confirm')}
+                <button onclick="game.continueAfterSettlement()">
+                    ${this.isBattleLost() ? this.translate('ui.confirm') : this.translate('ui.nextRound')}
                 </button>
             `;
         } else if (allLose) {
@@ -1411,8 +1437,8 @@ class GameState {
                     </div>
                     <p>${this.translate('ui.handConsumed', { hands: this.hands })}</p>
                 </div>
-                <button onclick="${this.hands > 0 ? 'game.newRound()' : 'game.setScreen(\'BATTLE\')'}">
-                    ${this.hands > 0 ? this.translate('ui.nextRound') : this.translate('ui.confirm')}
+                <button onclick="game.continueAfterSettlement()">
+                    ${this.isBattleLost() ? this.translate('ui.confirm') : this.translate('ui.nextRound')}
                 </button>
             `;
         } else {
@@ -1424,7 +1450,7 @@ class GameState {
                         ${handsHTML}
                     </div>
                 </div>
-                <button onclick="game.newRound()">${this.translate('ui.nextRound')}</button>
+                <button onclick="game.continueAfterSettlement()">${this.translate('ui.nextRound')}</button>
             `;
         }
 
