@@ -1304,8 +1304,8 @@ class GameState {
                                     <span style="color: #eee;">${this.translate('ui.pointsUnit', { value: enemy.ai_stand_threshold })}</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: #888;">${this.translate('ui.initialMorale')}</span>
-                                    <span style="color: #eee;">${enemy.morale}</span>
+                                    <span style="color: #888;">${this.translate('ui.stageMoneyGoal')}</span>
+                                    <span style="color: #eee;">$${this.moneyTarget}</span>
                                 </div>
                             </div>
                         </div>
