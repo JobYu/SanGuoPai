@@ -1,0 +1,44 @@
+{
+  "experimentId": "003",
+  "timestamp": "2026-04-22T09:46:45.067Z",
+  "options": {
+    "runs": 50,
+    "difficulties": [
+      "標準"
+    ],
+    "verbose": false,
+    "daemon": false,
+    "experimentDir": "/Volumes/APFS/project/SanGuoPai/tests/agent/experiments",
+    "leaderboardPath": "/Volumes/APFS/project/SanGuoPai/tests/agent/experiments/leaderboard.json"
+  },
+  "summary": {
+    "totalRuns": 50,
+    "averageWeightedScore": 12.04,
+    "maxStagesCleared": 5,
+    "stageDistribution": {
+      "標準-3": 9,
+      "標準-0": 8,
+      "標準-1": 6,
+      "標準-5": 4,
+      "標準-4": 16,
+      "標準-2": 7
+    },
+    "byDifficulty": [
+      {
+        "difficulty": "標準",
+        "runs": 50,
+        "avgWeightedScore": 12.04,
+        "avgStagesCleared": 2.62,
+        "maxStages": 5,
+        "stageDist": {
+          "0": 8,
+          "1": 6,
+          "2": 7,
+          "3": 9,
+          "4": 16,
+          "5": 4
+        }
+      }
+    ]
+  }
+}

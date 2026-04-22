@@ -1,0 +1,297 @@
+{
+  "experimentId": "021",
+  "timestamp": "2026-04-22T11:03:02.315Z",
+  "options": {
+    "runs": 50,
+    "iterations": 1,
+    "daemon": false,
+    "experimentDir": "/Volumes/APFS/project/SanGuoPai/tests/tuner/experiments",
+    "leaderboardPath": "/Volumes/APFS/project/SanGuoPai/tests/tuner/experiments/leaderboard.json"
+  },
+  "fitness": 0.5841020202020202,
+  "balanceScore": 0.8344314574314574,
+  "skillBonus": 0,
+  "avgSkillExpression": -0.2533333333333334,
+  "profileResults": {
+    "newbie": {
+      "totalRuns": 150,
+      "averageWeightedScore": 20.963333333333335,
+      "maxStagesCleared": 10,
+      "stageDistribution": {
+        "入門-5": 11,
+        "入門-0": 7,
+        "入門-3": 4,
+        "入門-7": 3,
+        "入門-6": 10,
+        "入門-8": 3,
+        "入門-1": 6,
+        "入門-4": 4,
+        "入門-9": 2,
+        "標準-0": 6,
+        "標準-7": 3,
+        "標準-3": 8,
+        "標準-4": 7,
+        "標準-5": 13,
+        "標準-6": 2,
+        "標準-2": 4,
+        "標準-10": 1,
+        "標準-9": 1,
+        "標準-1": 5,
+        "困難-5": 9,
+        "困難-3": 11,
+        "困難-2": 8,
+        "困難-1": 6,
+        "困難-6": 2,
+        "困難-4": 10,
+        "困難-0": 4
+      },
+      "byDifficulty": [
+        {
+          "difficulty": "入門",
+          "runs": 50,
+          "avgWeightedScore": 14.54,
+          "avgStagesCleared": 4.24,
+          "maxStages": 9,
+          "stageDist": {
+            "0": 7,
+            "1": 6,
+            "3": 4,
+            "4": 4,
+            "5": 11,
+            "6": 10,
+            "7": 3,
+            "8": 3,
+            "9": 2
+          }
+        },
+        {
+          "difficulty": "標準",
+          "runs": 50,
+          "avgWeightedScore": 22.24,
+          "avgStagesCleared": 3.64,
+          "maxStages": 10,
+          "stageDist": {
+            "0": 6,
+            "1": 5,
+            "2": 4,
+            "3": 8,
+            "4": 7,
+            "5": 13,
+            "6": 2,
+            "7": 3,
+            "9": 1,
+            "10": 1
+          }
+        },
+        {
+          "difficulty": "困難",
+          "runs": 50,
+          "avgWeightedScore": 26.11,
+          "avgStagesCleared": 3.04,
+          "maxStages": 6,
+          "stageDist": {
+            "0": 4,
+            "1": 6,
+            "2": 8,
+            "3": 11,
+            "4": 10,
+            "5": 9,
+            "6": 2
+          }
+        }
+      ]
+    },
+    "casual": {
+      "totalRuns": 150,
+      "averageWeightedScore": 21.92,
+      "maxStagesCleared": 11,
+      "stageDistribution": {
+        "入門-5": 8,
+        "入門-8": 3,
+        "入門-0": 5,
+        "入門-6": 11,
+        "入門-3": 4,
+        "入門-2": 1,
+        "入門-4": 8,
+        "入門-9": 2,
+        "入門-7": 6,
+        "入門-11": 1,
+        "入門-10": 1,
+        "標準-1": 5,
+        "標準-3": 7,
+        "標準-0": 9,
+        "標準-9": 1,
+        "標準-4": 9,
+        "標準-6": 5,
+        "標準-7": 2,
+        "標準-2": 4,
+        "標準-5": 5,
+        "標準-8": 3,
+        "困難-0": 8,
+        "困難-5": 12,
+        "困難-3": 9,
+        "困難-1": 8,
+        "困難-2": 4,
+        "困難-4": 8,
+        "困難-7": 1
+      },
+      "byDifficulty": [
+        {
+          "difficulty": "入門",
+          "runs": 50,
+          "avgWeightedScore": 18.9,
+          "avgStagesCleared": 5.14,
+          "maxStages": 11,
+          "stageDist": {
+            "0": 5,
+            "2": 1,
+            "3": 4,
+            "4": 8,
+            "5": 8,
+            "6": 11,
+            "7": 6,
+            "8": 3,
+            "9": 2,
+            "10": 1,
+            "11": 1
+          }
+        },
+        {
+          "difficulty": "標準",
+          "runs": 50,
+          "avgWeightedScore": 21.52,
+          "avgStagesCleared": 3.44,
+          "maxStages": 9,
+          "stageDist": {
+            "0": 9,
+            "1": 5,
+            "2": 4,
+            "3": 7,
+            "4": 9,
+            "5": 5,
+            "6": 5,
+            "7": 2,
+            "8": 3,
+            "9": 1
+          }
+        },
+        {
+          "difficulty": "困難",
+          "runs": 50,
+          "avgWeightedScore": 25.34,
+          "avgStagesCleared": 2.84,
+          "maxStages": 7,
+          "stageDist": {
+            "0": 8,
+            "1": 8,
+            "2": 4,
+            "3": 9,
+            "4": 8,
+            "5": 12,
+            "7": 1
+          }
+        }
+      ]
+    },
+    "hardcore": {
+      "totalRuns": 150,
+      "averageWeightedScore": 21.58,
+      "maxStagesCleared": 12,
+      "stageDistribution": {
+        "入門-1": 7,
+        "入門-6": 7,
+        "入門-4": 5,
+        "入門-3": 5,
+        "入門-2": 8,
+        "入門-7": 3,
+        "入門-0": 6,
+        "入門-11": 1,
+        "入門-8": 2,
+        "入門-5": 3,
+        "入門-12": 1,
+        "入門-9": 1,
+        "入門-10": 1,
+        "標準-5": 9,
+        "標準-6": 7,
+        "標準-0": 8,
+        "標準-4": 3,
+        "標準-1": 10,
+        "標準-3": 4,
+        "標準-2": 5,
+        "標準-8": 3,
+        "標準-7": 1,
+        "困難-6": 2,
+        "困難-4": 12,
+        "困難-3": 5,
+        "困難-0": 8,
+        "困難-2": 7,
+        "困難-5": 6,
+        "困難-1": 7,
+        "困難-7": 1,
+        "困難-11": 1,
+        "困難-8": 1
+      },
+      "byDifficulty": [
+        {
+          "difficulty": "入門",
+          "runs": 50,
+          "avgWeightedScore": 14.06,
+          "avgStagesCleared": 3.88,
+          "maxStages": 12,
+          "stageDist": {
+            "0": 6,
+            "1": 7,
+            "2": 8,
+            "3": 5,
+            "4": 5,
+            "5": 3,
+            "6": 7,
+            "7": 3,
+            "8": 2,
+            "9": 1,
+            "10": 1,
+            "11": 1,
+            "12": 1
+          }
+        },
+        {
+          "difficulty": "標準",
+          "runs": 50,
+          "avgWeightedScore": 19.88,
+          "avgStagesCleared": 3.24,
+          "maxStages": 8,
+          "stageDist": {
+            "0": 8,
+            "1": 10,
+            "2": 5,
+            "3": 4,
+            "4": 3,
+            "5": 9,
+            "6": 7,
+            "7": 1,
+            "8": 3
+          }
+        },
+        {
+          "difficulty": "困難",
+          "runs": 50,
+          "avgWeightedScore": 30.8,
+          "avgStagesCleared": 3.04,
+          "maxStages": 11,
+          "stageDist": {
+            "0": 8,
+            "1": 7,
+            "2": 7,
+            "3": 5,
+            "4": 12,
+            "5": 6,
+            "6": 2,
+            "7": 1,
+            "8": 1,
+            "11": 1
+          }
+        }
+      ]
+    }
+  }
+}

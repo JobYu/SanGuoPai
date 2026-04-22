@@ -1,0 +1,48 @@
+{
+  "entries": [
+    {
+      "id": "006",
+      "fitness": 35.806666666666665,
+      "maxStages": 10,
+      "timestamp": "2026-04-22T11:58:23.175Z",
+      "isImprovement": true
+    },
+    {
+      "id": "004",
+      "fitness": 31.435,
+      "maxStages": 9,
+      "timestamp": "2026-04-22T10:57:03.657Z",
+      "isImprovement": true
+    },
+    {
+      "id": "005",
+      "fitness": 29.861666666666668,
+      "maxStages": 9,
+      "timestamp": "2026-04-22T11:05:39.663Z",
+      "isImprovement": false
+    },
+    {
+      "id": "002",
+      "fitness": 13.166666666666666,
+      "maxStages": 6,
+      "timestamp": "2026-04-22T09:46:22.635Z",
+      "isImprovement": true
+    },
+    {
+      "id": "003",
+      "fitness": 12.04,
+      "maxStages": 5,
+      "timestamp": "2026-04-22T09:46:45.079Z",
+      "isImprovement": false
+    },
+    {
+      "id": "001",
+      "fitness": 11.68,
+      "maxStages": 6,
+      "timestamp": "2026-04-22T09:45:28.882Z",
+      "isImprovement": true
+    }
+  ],
+  "bestFitness": 35.806666666666665,
+  "bestExperiment": "006"
+}

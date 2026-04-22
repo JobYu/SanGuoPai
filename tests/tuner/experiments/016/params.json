@@ -1,0 +1,19 @@
+{
+  "enemy.money_target_multiplier": 0.9,
+  "enemy.max_rounds_offset": 0,
+  "enemy.ai_stand_threshold_base": 18,
+  "enemy.ai_variance": 1,
+  "difficulty.easy_multiplier": 0.7000000000000001,
+  "difficulty.hard_multiplier": 1.25,
+  "difficulty.hard_ai_penalty": 0.35000000000000003,
+  "player.hands_per_battle": 4,
+  "player.discards_per_battle": 4,
+  "player.hit_limit": 3,
+  "player.initial_generals": 3,
+  "player.max_slots": 6,
+  "skills.additive_base_multiplier": 1,
+  "skills.multiplier_base_multiplier": 1.5,
+  "rules.blackjack_payout": 2.5,
+  "rules.double_down_allowed": true,
+  "rules.split_allowed": true
+}

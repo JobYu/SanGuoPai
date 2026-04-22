@@ -1,0 +1,96 @@
+{
+  "experimentId": "004",
+  "timestamp": "2026-04-22T10:57:03.639Z",
+  "options": {
+    "runs": 100,
+    "difficulties": [
+      "入門",
+      "標準",
+      "困難"
+    ],
+    "verbose": false,
+    "daemon": false,
+    "experimentDir": "/Volumes/APFS/project/SanGuoPai/tests/agent/experiments",
+    "leaderboardPath": "/Volumes/APFS/project/SanGuoPai/tests/agent/experiments/leaderboard.json"
+  },
+  "summary": {
+    "totalRuns": 300,
+    "averageWeightedScore": 31.435,
+    "maxStagesCleared": 9,
+    "stageDistribution": {
+      "入門-5": 36,
+      "入門-6": 25,
+      "入門-4": 19,
+      "入門-7": 13,
+      "入門-3": 3,
+      "入門-8": 3,
+      "入門-9": 1,
+      "標準-6": 22,
+      "標準-4": 32,
+      "標準-5": 31,
+      "標準-7": 9,
+      "標準-2": 2,
+      "標準-3": 2,
+      "標準-8": 2,
+      "困難-4": 39,
+      "困難-5": 37,
+      "困難-2": 4,
+      "困難-3": 8,
+      "困難-9": 1,
+      "困難-6": 8,
+      "困難-1": 1,
+      "困難-7": 2
+    },
+    "byDifficulty": [
+      {
+        "difficulty": "入門",
+        "runs": 100,
+        "avgWeightedScore": 17.9,
+        "avgStagesCleared": 5.39,
+        "maxStages": 9,
+        "stageDist": {
+          "3": 3,
+          "4": 19,
+          "5": 36,
+          "6": 25,
+          "7": 13,
+          "8": 3,
+          "9": 1
+        }
+      },
+      {
+        "difficulty": "標準",
+        "runs": 100,
+        "avgWeightedScore": 31.78,
+        "avgStagesCleared": 5.04,
+        "maxStages": 8,
+        "stageDist": {
+          "2": 2,
+          "3": 2,
+          "4": 32,
+          "5": 31,
+          "6": 22,
+          "7": 9,
+          "8": 2
+        }
+      },
+      {
+        "difficulty": "困難",
+        "runs": 100,
+        "avgWeightedScore": 44.625,
+        "avgStagesCleared": 4.45,
+        "maxStages": 9,
+        "stageDist": {
+          "1": 1,
+          "2": 4,
+          "3": 8,
+          "4": 39,
+          "5": 37,
+          "6": 8,
+          "7": 2,
+          "9": 1
+        }
+      }
+    ]
+  }
+}

@@ -8,7 +8,13 @@
     "build": "vite build",
     "preview": "vite preview",
     "electron:dev": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "agent:run": "cd tests/agent && node run_experiment.js --runs 100",
+    "agent:daemon": "cd tests/agent && node run_experiment.js --daemon --runs 100",
+    "agent:verbose": "cd tests/agent && node run_experiment.js --runs 10 --verbose",
+    "tuner:run": "node tests/tuner/run_tuner.js --runs 50 --iterations 10",
+    "tuner:daemon": "node tests/tuner/run_tuner.js --runs 50 --daemon",
+    "tuner:quick": "node tests/tuner/run_tuner.js --runs 10 --iterations 3"
   },
   "devDependencies": {
     "electron": "^33.4.11",

@@ -1,0 +1,310 @@
+{
+  "entries": [
+    {
+      "id": "038",
+      "fitness": 0.8549530303030302,
+      "balanceScore": 0.8470757575757575,
+      "skillExpression": 2.6200000000000006,
+      "timestamp": "2026-04-22T11:58:13.165Z",
+      "isImprovement": true
+    },
+    {
+      "id": "035",
+      "fitness": 0.8545588383838383,
+      "balanceScore": 0.8246078643578643,
+      "skillExpression": 2.7733333333333334,
+      "timestamp": "2026-04-22T11:58:12.945Z",
+      "isImprovement": true
+    },
+    {
+      "id": "036",
+      "fitness": 0.8306709595959596,
+      "balanceScore": 0.8885775613275614,
+      "skillExpression": 2.086666666666667,
+      "timestamp": "2026-04-22T11:58:13.032Z",
+      "isImprovement": false
+    },
+    {
+      "id": "032",
+      "fitness": 0.8084863636363637,
+      "balanceScore": 0.726409090909091,
+      "skillExpression": 3.06,
+      "timestamp": "2026-04-22T11:57:59.738Z",
+      "isImprovement": true
+    },
+    {
+      "id": "034",
+      "fitness": 0.6461712121212121,
+      "balanceScore": 0.6259588744588744,
+      "skillExpression": 2.08,
+      "timestamp": "2026-04-22T11:58:12.844Z",
+      "isImprovement": false
+    },
+    {
+      "id": "023",
+      "fitness": 0.6415103535353535,
+      "balanceScore": 0.8431100288600288,
+      "skillExpression": 0.5133333333333332,
+      "timestamp": "2026-04-22T11:05:05.308Z",
+      "isImprovement": true
+    },
+    {
+      "id": "025",
+      "fitness": 0.638115909090909,
+      "balanceScore": 0.8430227272727271,
+      "skillExpression": 0.48000000000000026,
+      "timestamp": "2026-04-22T11:05:21.468Z",
+      "isImprovement": false
+    },
+    {
+      "id": "024",
+      "fitness": 0.6092434343434343,
+      "balanceScore": 0.8046334776334776,
+      "skillExpression": 0.46000000000000013,
+      "timestamp": "2026-04-22T11:05:05.518Z",
+      "isImprovement": false
+    },
+    {
+      "id": "037",
+      "fitness": 0.58485,
+      "balanceScore": 0.5802619047619046,
+      "skillExpression": 1.786666666666667,
+      "timestamp": "2026-04-22T11:58:13.074Z",
+      "isImprovement": false
+    },
+    {
+      "id": "021",
+      "fitness": 0.5841020202020202,
+      "balanceScore": 0.8344314574314574,
+      "skillExpression": -0.2533333333333334,
+      "timestamp": "2026-04-22T11:03:02.325Z",
+      "isImprovement": true
+    },
+    {
+      "id": "033",
+      "fitness": 0.5725247474747475,
+      "balanceScore": 0.5150353535353536,
+      "skillExpression": 2.1199999999999997,
+      "timestamp": "2026-04-22T11:58:12.708Z",
+      "isImprovement": false
+    },
+    {
+      "id": "022",
+      "fitness": 0.5698386363636363,
+      "balanceScore": 0.8140551948051947,
+      "skillExpression": -0.36666666666666686,
+      "timestamp": "2026-04-22T11:03:02.457Z",
+      "isImprovement": false
+    },
+    {
+      "id": "031",
+      "fitness": 0.5654411616161616,
+      "balanceScore": 0.5430111832611833,
+      "skillExpression": 1.8533333333333335,
+      "timestamp": "2026-04-22T11:57:59.608Z",
+      "isImprovement": false
+    },
+    {
+      "id": "026",
+      "fitness": 0.5618388888888888,
+      "balanceScore": 0.7864365079365079,
+      "skillExpression": 0.11333333333333313,
+      "timestamp": "2026-04-22T11:05:22.030Z",
+      "isImprovement": false
+    },
+    {
+      "id": "029",
+      "fitness": 0.5582015151515151,
+      "balanceScore": 0.7974307359307359,
+      "skillExpression": -0.43999999999999995,
+      "timestamp": "2026-04-22T11:05:23.025Z",
+      "isImprovement": false
+    },
+    {
+      "id": "028",
+      "fitness": 0.5125020202020201,
+      "balanceScore": 0.6969076479076478,
+      "skillExpression": 0.24666666666666673,
+      "timestamp": "2026-04-22T11:05:22.745Z",
+      "isImprovement": false
+    },
+    {
+      "id": "030",
+      "fitness": 0.4828628787878787,
+      "balanceScore": 0.5964707792207791,
+      "skillExpression": 0.6533333333333333,
+      "timestamp": "2026-04-22T11:05:23.328Z",
+      "isImprovement": false
+    },
+    {
+      "id": "002",
+      "fitness": 0.4409280303030303,
+      "balanceScore": 0.5346590909090909,
+      "skillExpression": 0.6666666666666666,
+      "timestamp": "2026-04-22T10:13:33.016Z",
+      "isImprovement": true
+    },
+    {
+      "id": "001",
+      "fitness": 0.4114128787878787,
+      "balanceScore": 0.5401136363636363,
+      "skillExpression": 0.3333333333333335,
+      "timestamp": "2026-04-22T10:13:32.964Z",
+      "isImprovement": true
+    },
+    {
+      "id": "003",
+      "fitness": 0.36756363636363626,
+      "balanceScore": 0.5250909090909089,
+      "skillExpression": -0.13333333333333316,
+      "timestamp": "2026-04-22T10:27:59.027Z",
+      "isImprovement": false
+    },
+    {
+      "id": "005",
+      "fitness": 0.3619227272727272,
+      "balanceScore": 0.47131818181818175,
+      "skillExpression": 0.31999999999999984,
+      "timestamp": "2026-04-22T10:29:20.166Z",
+      "isImprovement": false
+    },
+    {
+      "id": "004",
+      "fitness": 0.35750909090909094,
+      "balanceScore": 0.5107272727272728,
+      "skillExpression": -0.36000000000000004,
+      "timestamp": "2026-04-22T10:27:59.126Z",
+      "isImprovement": false
+    },
+    {
+      "id": "017",
+      "fitness": 0.3425545454545454,
+      "balanceScore": 0.48936363636363633,
+      "skillExpression": -0.15333333333333332,
+      "timestamp": "2026-04-22T10:56:28.305Z",
+      "isImprovement": false
+    },
+    {
+      "id": "007",
+      "fitness": 0.3383863636363636,
+      "balanceScore": 0.48340909090909084,
+      "skillExpression": -0.9999999999999999,
+      "timestamp": "2026-04-22T10:31:41.719Z",
+      "isImprovement": false
+    },
+    {
+      "id": "020",
+      "fitness": 0.3334068181818181,
+      "balanceScore": 0.47629545454545447,
+      "skillExpression": -0.58,
+      "timestamp": "2026-04-22T10:59:06.297Z",
+      "isImprovement": false
+    },
+    {
+      "id": "009",
+      "fitness": 0.32802954545454543,
+      "balanceScore": 0.46861363636363634,
+      "skillExpression": -0.12000000000000026,
+      "timestamp": "2026-04-22T10:33:32.428Z",
+      "isImprovement": false
+    },
+    {
+      "id": "018",
+      "fitness": 0.3177363636363636,
+      "balanceScore": 0.4539090909090909,
+      "skillExpression": -0.15999999999999984,
+      "timestamp": "2026-04-22T10:56:28.426Z",
+      "isImprovement": false
+    },
+    {
+      "id": "016",
+      "fitness": 0.3156363636363636,
+      "balanceScore": 0.45090909090909087,
+      "skillExpression": -1.873333333333333,
+      "timestamp": "2026-04-22T10:54:52.641Z",
+      "isImprovement": false
+    },
+    {
+      "id": "019",
+      "fitness": 0.3089863636363636,
+      "balanceScore": 0.4414090909090909,
+      "skillExpression": -0.3333333333333332,
+      "timestamp": "2026-04-22T10:59:06.199Z",
+      "isImprovement": false
+    },
+    {
+      "id": "014",
+      "fitness": 0.30534318181818176,
+      "balanceScore": 0.4362045454545454,
+      "skillExpression": -0.8333333333333334,
+      "timestamp": "2026-04-22T10:53:47.145Z",
+      "isImprovement": false
+    },
+    {
+      "id": "012",
+      "fitness": 0.29961590909090907,
+      "balanceScore": 0.4280227272727273,
+      "skillExpression": -1.5533333333333335,
+      "timestamp": "2026-04-22T10:50:37.066Z",
+      "isImprovement": false
+    },
+    {
+      "id": "006",
+      "fitness": 0.2954954545454545,
+      "balanceScore": 0.4221363636363636,
+      "skillExpression": -0.17333333333333334,
+      "timestamp": "2026-04-22T10:29:20.263Z",
+      "isImprovement": false
+    },
+    {
+      "id": "010",
+      "fitness": 0.29398409090909083,
+      "balanceScore": 0.41997727272727264,
+      "skillExpression": -0.08666666666666689,
+      "timestamp": "2026-04-22T10:33:32.535Z",
+      "isImprovement": false
+    },
+    {
+      "id": "008",
+      "fitness": 0.2881613636363636,
+      "balanceScore": 0.41165909090909086,
+      "skillExpression": -1.346666666666667,
+      "timestamp": "2026-04-22T10:31:41.783Z",
+      "isImprovement": false
+    },
+    {
+      "id": "027",
+      "fitness": 0.2772252525252525,
+      "balanceScore": 0.3141313131313131,
+      "skillExpression": 0.5733333333333336,
+      "timestamp": "2026-04-22T11:05:22.436Z",
+      "isImprovement": false
+    },
+    {
+      "id": "011",
+      "fitness": 0.27371590909090904,
+      "balanceScore": 0.39102272727272724,
+      "skillExpression": -1.1333333333333335,
+      "timestamp": "2026-04-22T10:50:36.977Z",
+      "isImprovement": false
+    },
+    {
+      "id": "013",
+      "fitness": 0.2718227272727272,
+      "balanceScore": 0.3883181818181818,
+      "skillExpression": -0.7066666666666666,
+      "timestamp": "2026-04-22T10:53:47.012Z",
+      "isImprovement": false
+    },
+    {
+      "id": "015",
+      "fitness": 0.24243863636363636,
+      "balanceScore": 0.3463409090909091,
+      "skillExpression": -1.0066666666666666,
+      "timestamp": "2026-04-22T10:54:52.521Z",
+      "isImprovement": false
+    }
+  ],
+  "bestFitness": 0.8549530303030302,
+  "bestExperiment": "038"
+}
