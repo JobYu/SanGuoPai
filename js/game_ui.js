@@ -593,9 +593,16 @@ class GameState {
         if (this.turn !== 'PLAYER' || this.discards <= 0 || this.selectedForDiscard.size === 0) return;
 
         const indices = Array.from(this.selectedForDiscard).sort((a, b) => b - a);
+        const discardCount = indices.length;
         indices.forEach(idx => {
             this.currentHand().cards.splice(idx, 1);
         });
+
+        // Draw replacement cards (strategic discard = refresh hand)
+        for (let i = 0; i < discardCount && this.deck.cards.length > 0; i++) {
+            const newCard = this.deck.draw();
+            this.currentHand().addCard(newCard);
+        }
 
         this.discards--;
         this.selectedForDiscard.clear();

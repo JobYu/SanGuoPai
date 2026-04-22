@@ -10,10 +10,21 @@ class CombatEngine {
      * @param {Array} multiplierSkills - list of multiplier values (e.g. [1.5, 1.2])
      * @returns {Object} { money: number, result: 'WIN'|'LOSE'|'PUSH'|'BUST' }
      */
-    static calculateMoney(playerPoints, enemyPoints, isBlackjack, betMultiplier = 1, additiveSkills = [], multiplierSkills = []) {
-        // Bust: lose bet
+    static calculateMoney(playerPoints, enemyPoints, isBlackjack, betMultiplier = 1, additiveSkills = [], multiplierSkills = [], bustProtection = 0) {
+        const multiplier = playerPoints + 5;
+        const baseMoney = playerPoints * multiplier * betMultiplier;
+
+        // Bust: partial reward (closer to 21 = more reward)
+        // Base: 22=70%, 23=60%, 24=50%, 25=40%, 26=30%, 27=20%, 28=10%, 29+: 0%
+        // bustProtection adds to keepRatio (capped at 1.0)
         if (playerPoints > 21) {
-            return { money: 0, result: 'BUST' };
+            const overage = playerPoints - 21;
+            let keepRatio = Math.max(0, 0.8 - overage * 0.1);
+            keepRatio = Math.min(1.0, keepRatio + bustProtection);
+            const totalAdditive = additiveSkills.reduce((acc, val) => acc + val, 0) + playerPoints;
+            const totalMultiplier = multiplierSkills.reduce((acc, val) => acc * val, 1);
+            const partialMoney = Math.floor((baseMoney * keepRatio + totalAdditive) * totalMultiplier);
+            return { money: partialMoney, result: 'BUST' };
         }
 
         // Push: no money exchange
@@ -26,14 +37,9 @@ class CombatEngine {
             return { money: 0, result: 'LOSE' };
         }
 
-        // Win: calculate money
-        const multiplier = 10 + (21 - playerPoints);
-        const baseMoney = playerPoints * multiplier * betMultiplier;
-
-        // Apply skills
+        // Win: calculate money (higher points = much higher reward)
         const totalAdditive = additiveSkills.reduce((acc, val) => acc + val, 0) + playerPoints;
         const totalMultiplier = multiplierSkills.reduce((acc, val) => acc * val, 1);
-
         const finalMoney = Math.floor((baseMoney + totalAdditive) * totalMultiplier);
 
         return {
